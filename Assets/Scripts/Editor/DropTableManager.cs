@@ -60,6 +60,13 @@ public static class DropTableEditor
         EditorGUILayout.EndHorizontal();
     }
 
+    //Toolbar Button: Open prefs
+    // [MenuItem("DropTable/Open Prefs")]
+    // public static void OpenPrefs()
+    // {
+    //     EditorPrefs.SetString("DropTablePath", EditorUtility.OpenFolderPanel("Select Default Location", EditorPrefs.GetString("DropTablePath", "Assets/Resources/DropTables"), ""));
+    // }
+
     //Choose New Location for DropTables
     public static void ChangeDefaultLocation()
     {

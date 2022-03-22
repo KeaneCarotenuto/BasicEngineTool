@@ -36,13 +36,28 @@ public class DropScript : MonoBehaviour
     [SerializeField] public UnityEvent onLastDrops = new UnityEvent();
     [SerializeField] public UnityEvent onFailedDrop = new UnityEvent();
 
+    public bool debugMode = false;
+
     private void OnDrawGizmos() {
-        return;
+        if (!debugMode) return;
 
         //draw force and cone
+        //calculate position
         Vector3 dropPos = Vector3.zero;
-        dropPos = dropLocation.position;
-        dropPos += dropOffset;
+        if (dropLocation != null) {
+            dropPos = dropLocation.position;
+            dropPos += dropOffset;
+        }
+        else if (dropArea != null) {
+            //get random point within area
+            Vector3 randomPoint = dropArea.bounds.center + RandomPointInColliderBox(dropArea);
+
+            dropPos = randomPoint;
+            dropPos += dropOffset;
+        }
+        else {
+            dropPos = transform.position;
+        }
 
         Vector3 throwDir = throwForce;
 
@@ -108,9 +123,7 @@ public class DropScript : MonoBehaviour
         }
         else if (dropArea != null) {
             //get random point within area
-            Vector3 randomPoint = dropArea.bounds.center + new Vector3(UnityEngine.Random.Range(-dropArea.bounds.extents.x, dropArea.bounds.extents.x),
-                                                                        UnityEngine.Random.Range(-dropArea.bounds.extents.y, dropArea.bounds.extents.y),
-                                                                        UnityEngine.Random.Range(-dropArea.bounds.extents.z, dropArea.bounds.extents.z));
+            Vector3 randomPoint = dropArea.bounds.center + RandomPointInColliderBox(dropArea);
 
             dropPos = randomPoint;
             dropPos += dropOffset;
@@ -135,7 +148,19 @@ public class DropScript : MonoBehaviour
 
     }
 
+    public Vector3 RandomPointInColliderBox(Collider collider){
+        if (collider == null) return Vector3.zero;
+
+        Vector3 randomPoint = new Vector3(UnityEngine.Random.Range(
+            -collider.bounds.extents.x, collider.bounds.extents.x),
+            UnityEngine.Random.Range(-collider.bounds.extents.y, collider.bounds.extents.y),
+            UnityEngine.Random.Range(-collider.bounds.extents.z, collider.bounds.extents.z));
+        return randomPoint;
+    }
+
     public Vector3 RandomPointOnSphereRandomAngle(Vector3 direction, float anlge){
+        if (direction == null || direction == Vector3.zero) return Vector3.zero;
+
         Vector3 start = direction;
         Vector3 target = RandomPointOnSphereFixedAngle(direction, anlge);
         float randLerp = UnityEngine.Random.Range(0.0f, 1.0f);
