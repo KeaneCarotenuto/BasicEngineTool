@@ -7,7 +7,7 @@ using UnityEditor;
 #endif
 
 //Drop table scriptable object
-[CreateAssetMenu(fileName = "DropTable", menuName = "DropTable", order = 1)]
+//[CreateAssetMenu(fileName = "DropTable", menuName = "DropTable", order = 1)]
 public class DropTable : ScriptableObject
 {
     // Start is called before the first frame update
@@ -26,7 +26,8 @@ public class DropTable : ScriptableObject
     [MenuItem("Assets/Create/DropTable")]
     public static void CreateDropTable()
     {
-        ScriptableObjectUtility.CreateAsset("DropTable");
+        Debug.Log("CreateDropTable");
+        ScriptableObjectUtility.CreateAsset("DropTable", "Assets/Scripts/LootTables");
     }
     #endif
 }
