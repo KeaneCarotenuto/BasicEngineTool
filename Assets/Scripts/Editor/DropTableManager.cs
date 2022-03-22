@@ -4,22 +4,11 @@ using UnityEngine;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using System.IO;
 #endif
 
-public class DropTableEditor : MonoBehaviour
+public static class DropTableEditor
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     #if UNITY_EDITOR
 
     //Toolbar Button: Create New Drop Table
@@ -27,7 +16,31 @@ public class DropTableEditor : MonoBehaviour
     public static void CreateDropTable()
     {
         Debug.Log("CreateDropTable");
-        ScriptableObjectUtility.CreateAsset("DropTable", EditorPrefs.GetString("DropTablePath"));
+
+        string assetType = "DropTable";
+        string path = EditorPrefs.GetString("DropTablePath");
+
+        //if path does not exist, create it
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+            //refresh the asset database
+            AssetDatabase.Refresh();
+        }
+
+        ScriptableObject asset = ScriptableObject.CreateInstance(assetType);
+
+        string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + assetType + ".asset");
+
+        Debug.Log("assetPathAndName " + assetType);
+
+        ProjectWindowUtil.CreateAsset(asset, assetPathAndName);
+        AssetDatabase.SaveAssets();
+        EditorUtility.FocusProjectWindow();
+        Selection.activeObject = asset;
+
+        //start editing name right away
+        Selection.activeObject.name = "NewTable";
     }
 
     //Prefs Option: default location
@@ -50,7 +63,6 @@ public class DropTableEditor : MonoBehaviour
     //Choose New Location for DropTables
     public static void ChangeDefaultLocation()
     {
-        Debug.Log("ChangeDefaultLocation");
         string path = EditorUtility.OpenFolderPanel("Select Folder", EditorPrefs.GetString("DropTablePath"), "");
         //shorten to only after project folder
         if (path.Contains(Application.dataPath))
@@ -65,6 +77,8 @@ public class DropTableEditor : MonoBehaviour
         {
             //save asset path
             EditorPrefs.SetString("DropTablePath", path);
+
+            Debug.Log("New DropTable Path: " + path);
         }
         else {
             Debug.LogError("Path not valid!");
