@@ -4,6 +4,7 @@ using UnityEngine;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using System.Reflection;
 using System.IO;
 #endif
 
@@ -43,6 +44,15 @@ public static class DropTableEditor
         Selection.activeObject.name = "NewTable";
     }
 
+    [MenuItem("DropTable/ ")]
+
+    //Toolbar Button: Open unity preferences
+    [MenuItem("DropTable/Edit Settings")]
+    public static void OpenPreferences()
+    {
+        SettingsService.OpenUserPreferences("Preferences/DropTable");
+    }
+
     //Prefs Option: default location
     [PreferenceItem("DropTable")]
     public static void PreferencesGUI()
@@ -59,13 +69,6 @@ public static class DropTableEditor
         }
         EditorGUILayout.EndHorizontal();
     }
-
-    //Toolbar Button: Open prefs
-    // [MenuItem("DropTable/Open Prefs")]
-    // public static void OpenPrefs()
-    // {
-    //     EditorPrefs.SetString("DropTablePath", EditorUtility.OpenFolderPanel("Select Default Location", EditorPrefs.GetString("DropTablePath", "Assets/Resources/DropTables"), ""));
-    // }
 
     //Choose New Location for DropTables
     public static void ChangeDefaultLocation()
