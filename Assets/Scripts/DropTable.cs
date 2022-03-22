@@ -48,7 +48,7 @@ public class DropTable : ScriptableObject
 
         //NOTE MAKE SURE TO MAKE AN OPTION TO ENABLE/DISABLE ALL
         [SerializeField] public int repetitionsAllowed = 1;
-        [HideInInspector] public int totalReps = 0;
+         public int totalReps = 0;
     }
 
     [SerializeField] public Rarity rarity = Rarity.Common;
@@ -72,16 +72,20 @@ public class DropTable : ScriptableObject
         List<GameObject> prefabs = new List<GameObject>();
 
         List<DropTableEntry> entries = GetValidRepOfEntries();
+        if (entries == null || entries.Count <= 0) return null;
 
         foreach (DropTableEntry entry in entries) {
             if (entry.prefab != null) {
-
-
-                prefabs.Add(entry.prefab);
+                int randAmount = UnityEngine.Random.Range(entry.amountToDrop.min, entry.amountToDrop.max + 1);
+                for (int i = 0; i < randAmount; i++) {
+                    prefabs.Add(entry.prefab);
+                }
 
                 entry.totalReps++;
             }
         }
+
+        if (prefabs.Count > 0) return prefabs;
 
         return null;
     }
@@ -157,6 +161,7 @@ public class DropTable : ScriptableObject
         bool isValid = CheckIfEntryIsValid(entry);
         if (!isValid) return false;
 
+        //check reps
         bool allowedRep = CheckIfAnotherRepAllowed(entry);
         if (!allowedRep) return false;
 
@@ -164,20 +169,16 @@ public class DropTable : ScriptableObject
     }
 
     private bool CheckIfAnotherRepAllowed(DropTableEntry entry) {
-        if (entry.repetitionsAllowed > entry.totalReps) {
-            return true;
-        }
-        return false;
+        if (entry.totalReps >= entry.repetitionsAllowed) return false;
+
+        return true;
     }
 
     private bool CheckIfEntryIsValid(DropTableEntry entry) {
         //check if entry is valid
-        if (entry.prefab != null) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        if (entry.prefab == null) return false;
+
+        return true;
     }
 
     #if UNITY_EDITOR

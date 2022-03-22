@@ -381,6 +381,10 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 1802029627009261301, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
+      propertyPath: dropTable
+      value: 
+      objectReference: {fileID: 11400000, guid: c68973ec77704f743bda0ae866c9ebd9, type: 2}
+    - target: {fileID: 1802029627009261301, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
       propertyPath: throwForce.y
       value: 1
       objectReference: {fileID: 0}

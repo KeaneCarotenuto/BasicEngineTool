@@ -10,9 +10,9 @@ using UnityEditor;
 
 public class DropScript : MonoBehaviour
 {
-    //NOTE: perhaps make this just one table? and add in combine tables elsewhere?
-    [SerializeField] public List<DropTable> dropTables = new List<DropTable>();
-    [SerializeField] public bool combineTables = false;
+    //NOTE: perhaps make this multi tables? or add in combine tables elsewhere?
+    [SerializeField] public DropTable dropTable = null;
+    //[SerializeField] public bool combineTables = false;
 
     //position options
     //NOTE: only allow one of these (transform or collider)
@@ -25,7 +25,7 @@ public class DropScript : MonoBehaviour
 
     //Drop options
     [SerializeField] public int repetitionsAllowed = 1;
-    [HideInInspector] public int totalReps = 0;
+     public int totalReps = 0;
     //if multiple {
     [SerializeField] public float dropDelay = 0.0f;
     //}
@@ -40,7 +40,13 @@ public class DropScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        //create copy of drop table to edit
+        if (dropTable != null)
+        {
+            string name = dropTable.name;
+            dropTable = Instantiate(dropTable);
+            dropTable.name = name;
+        }
     }
 
     // Update is called once per frame
@@ -50,8 +56,69 @@ public class DropScript : MonoBehaviour
     }
 
     public void DoDrop(){
-        //do drop
-        Debug.Log("Drop");
+        if (!CheckTable(dropTable)) return;
+
+        List<GameObject> toDrop = new List<GameObject>();
+        toDrop = dropTable.GetDropPrefabs();
+        if (toDrop == null || toDrop.Count <= 0) return;
+
+        foreach (GameObject obj in toDrop){
+            Instantiate(obj, dropLocation.position + dropOffset, Quaternion.identity);
+        }
+
+        totalReps++;
+    }
+
+    private void TESTSimpleDrop(){
+        //check reps
+        if (totalReps >= repetitionsAllowed)
+        {
+            return;
+        }
+
+        List<GameObject> toDrop = new List<GameObject>();
+
+        if (dropTable != null){
+            toDrop = dropTable.GetDropPrefabs();
+        }
+        if (toDrop == null || toDrop.Count <= 0) return;
+
+        if (toDrop.Count > 0){
+            //drop
+            
+        }
+
+        //increment total reps
+        totalReps++;
+    }
+
+    private bool CheckTable(DropTable table){
+        //is valid
+        bool isValid = CheckIfTableIsValid(table);
+        if (!isValid) return false;
+
+        //rep allowed
+        bool repAllowed = CheckIfAnotherRepAllowed();
+        if (!repAllowed) return false;
+
+        return true;
+    }
+
+    private bool CheckIfAnotherRepAllowed(){
+        if (totalReps >= repetitionsAllowed)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool CheckIfTableIsValid(DropTable table){
+        if (table == null) return false;
+
+        if (table.dropList.Count <= 0) return false;
+
+        return true;
     }
 
     #if UNITY_EDITOR
