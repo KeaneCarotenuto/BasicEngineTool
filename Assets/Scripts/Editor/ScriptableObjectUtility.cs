@@ -30,15 +30,26 @@ public static class ScriptableObjectUtility
 
     public static void CreateAsset(string assetType, string path)
     {
+        //if path does not exist, create it
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+            //refresh the asset database
+            AssetDatabase.Refresh();
+        }
+
         ScriptableObject asset = ScriptableObject.CreateInstance(assetType);
 
         string assetPathAndName = AssetDatabase.GenerateUniqueAssetPath(path + "/" + assetType + ".asset");
 
         Debug.Log("assetPathAndName " + assetType);
 
-        AssetDatabase.CreateAsset(asset, assetPathAndName);
+        ProjectWindowUtil.CreateAsset(asset, assetPathAndName);
         AssetDatabase.SaveAssets();
         EditorUtility.FocusProjectWindow();
         Selection.activeObject = asset;
+
+        //start editing name right away
+        Selection.activeObject.name = "NewTable";
     }
 }
