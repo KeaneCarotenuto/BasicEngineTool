@@ -49,10 +49,8 @@ public class Movement : MonoBehaviour
 
         foreach (Collider _hit in hits)
         {
-            if (_hit.transform.root == gameObject.transform)
-            {
-                continue;
-            }
+            if (_hit.transform.root == gameObject.transform) continue;
+            if (_hit.isTrigger) continue;
 
             isGrounded = true;
             break;

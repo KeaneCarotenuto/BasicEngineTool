@@ -36,6 +36,32 @@ public class DropScript : MonoBehaviour
     [SerializeField] public UnityEvent onLastDrops = new UnityEvent();
     [SerializeField] public UnityEvent onFailedDrop = new UnityEvent();
 
+    private void OnDrawGizmos() {
+        return;
+
+        //draw force and cone
+        Vector3 dropPos = Vector3.zero;
+        dropPos = dropLocation.position;
+        dropPos += dropOffset;
+
+        Vector3 throwDir = throwForce;
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(dropPos, dropPos + throwDir);
+        Gizmos.DrawWireSphere(dropPos, throwDir.magnitude/10.0f);
+        Gizmos.DrawWireSphere(dropPos + throwDir, throwDir.magnitude/10.0f);
+        Gizmos.DrawWireSphere(dropPos, throwDir.magnitude);
+
+
+        //draw random line
+        Gizmos.color = Color.green;
+        Vector3 start = throwDir;
+        for (int i = 0; i < 50; i++) {
+            Gizmos.DrawLine(dropPos, dropPos + RandomPointOnSphereRandomAngle(throwDir, randomAngleArc));
+        }
+        
+    }
+
 
     // Start is called before the first frame update
     void Start()
@@ -55,18 +81,77 @@ public class DropScript : MonoBehaviour
         
     }
 
+    //probably have to hook this up to update loop to do it with delays
     public void DoDrop(){
         if (!CheckTable(dropTable)) return;
+        Debug.Log("DropScript: DoDrop " + totalReps);
 
         List<GameObject> toDrop = new List<GameObject>();
         toDrop = dropTable.GetDropPrefabs();
         if (toDrop == null || toDrop.Count <= 0) return;
 
-        foreach (GameObject obj in toDrop){
-            Instantiate(obj, dropLocation.position + dropOffset, Quaternion.identity);
+        foreach (GameObject drop in toDrop){
+            DropObject(drop);
         }
 
         totalReps++;
+    }
+
+    private void DropObject(GameObject drop){
+        if (drop == null) return;
+        
+        //calculate position
+        Vector3 dropPos = Vector3.zero;
+        if (dropLocation != null) {
+            dropPos = dropLocation.position;
+            dropPos += dropOffset;
+        }
+        else if (dropArea != null) {
+            //get random point within area
+            Vector3 randomPoint = dropArea.bounds.center + new Vector3(UnityEngine.Random.Range(-dropArea.bounds.extents.x, dropArea.bounds.extents.x),
+                                                                        UnityEngine.Random.Range(-dropArea.bounds.extents.y, dropArea.bounds.extents.y),
+                                                                        UnityEngine.Random.Range(-dropArea.bounds.extents.z, dropArea.bounds.extents.z));
+
+            dropPos = randomPoint;
+            dropPos += dropOffset;
+        }
+        else {
+            dropPos = transform.position;
+        }
+        
+
+        GameObject instance = Instantiate(drop, dropPos, Quaternion.identity);
+
+        //calculate throw force
+        Vector3 throwDir = throwForce;
+        if (randomAngleArc > 0) {
+            throwDir = RandomPointOnSphereRandomAngle(throwDir, randomAngleArc);
+        }
+        //apply force
+        Rigidbody rb = instance.GetComponent<Rigidbody>();
+        if (rb != null) {
+            rb.velocity = throwDir;
+        }
+
+    }
+
+    public Vector3 RandomPointOnSphereRandomAngle(Vector3 direction, float anlge){
+        Vector3 start = direction;
+        Vector3 target = RandomPointOnSphereFixedAngle(direction, anlge);
+        float randLerp = UnityEngine.Random.Range(0.0f, 1.0f);
+        Vector3 randLine = Vector3.Lerp(start, target, randLerp);
+        randLine = randLine.normalized * direction.magnitude;
+        return randLine;
+    }
+
+    public Vector3 RandomPointOnSphereFixedAngle(Vector3 direction, float anlge)
+    {
+        float radius = Mathf.Tan(Mathf.Deg2Rad*anlge/2) * direction.magnitude;
+        Vector2 circle = UnityEngine.Random.insideUnitCircle * radius;
+        //convert direction to quaternion
+        Quaternion directionQuat = Quaternion.LookRotation(direction);
+        Vector3 target = direction + directionQuat*new Vector3(circle.x, circle.y);
+        return target.normalized * direction.magnitude;
     }
 
     private void TESTSimpleDrop(){

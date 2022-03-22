@@ -48,6 +48,7 @@ public class DropTable : ScriptableObject
 
         //NOTE MAKE SURE TO MAKE AN OPTION TO ENABLE/DISABLE ALL
         [SerializeField] public int repetitionsAllowed = 1;
+        [SerializeField] public bool unlimitedRepsAllowed = false;
          public int totalReps = 0;
     }
 
@@ -151,8 +152,6 @@ public class DropTable : ScriptableObject
             }
         }
 
-        //if we get here, something went wrong
-        Debug.Log("No valid non-forced drops found");
         return null;
     }
 
@@ -169,6 +168,8 @@ public class DropTable : ScriptableObject
     }
 
     private bool CheckIfAnotherRepAllowed(DropTableEntry entry) {
+        if (entry.unlimitedRepsAllowed) return true;
+        
         if (entry.totalReps >= entry.repetitionsAllowed) return false;
 
         return true;
