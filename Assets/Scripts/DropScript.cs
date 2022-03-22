@@ -10,17 +10,25 @@ using UnityEditor;
 
 public class DropScript : MonoBehaviour
 {
+    //NOTE: perhaps make this just one table? and add in combine tables elsewhere?
     [SerializeField] public List<DropTable> dropTables = new List<DropTable>();
     [SerializeField] public bool combineTables = false;
 
+    //position options
+    //NOTE: only allow one of these (transform or collider)
     [SerializeField] public Transform dropLocation = null;
+    //NOTE: perhaps make some 3D tool to make this easier?
+    [SerializeField] public Collider dropArea = null;
     [SerializeField] public Vector3 dropOffset = Vector3.zero;
+    [SerializeField] public Vector3 throwForce = Vector3.zero;
+    [SerializeField] public float randomAngleArc = 0;
 
     //Drop options
-    [SerializeField] public bool dropOnDestroy = false;
-    [SerializeField] public bool allowMultipleDrops = false;
-    [SerializeField] public bool canDrop = true;
-    [SerializeField] public int maxDrops = 1;
+    [SerializeField] public int repetitionsAllowed = 1;
+    [HideInInspector] public int totalReps = 0;
+    //if multiple {
+    [SerializeField] public float dropDelay = 0.0f;
+    //}
 
     //events
     [SerializeField] public UnityEvent onSuccessfulDrop = new UnityEvent();

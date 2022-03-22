@@ -312,11 +312,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &1772693534 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1802029627009261300, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
-  m_PrefabInstance: {fileID: 1802029625542768362}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1980297041 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4131039958043278767, guid: f55619ad361aa8741b00e38c2caa0a36, type: 3}
@@ -382,17 +377,21 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1802029627009261301, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
-      propertyPath: dropLocation
-      value: 
-      objectReference: {fileID: 1772693534}
+      propertyPath: dropDelay
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 1802029627009261301, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
-      propertyPath: dropOffset.y
+      propertyPath: throwForce.y
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1802029627009261301, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
-      propertyPath: dropTables.Array.data[0]
-      value: 
-      objectReference: {fileID: 11400000, guid: c68973ec77704f743bda0ae866c9ebd9, type: 2}
+      propertyPath: combineTables
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1802029627009261301, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
+      propertyPath: randomAngleArc
+      value: 10
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
 --- !u!1001 &4131039956667060990

@@ -125,4 +125,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dropTables:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: c68973ec77704f743bda0ae866c9ebd9, type: 2}
+  combineTables: 0
+  dropLocation: {fileID: 1802029627009261300}
+  dropOffset: {x: 0, y: 1, z: 0}
+  dropOnDestroy: 0
+  allowMultipleDrops: 0
+  canDrop: 1
+  maxDrops: 1
+  onSuccessfulDrop:
+    m_PersistentCalls:
+      m_Calls: []
+  onFirstDrop:
+    m_PersistentCalls:
+      m_Calls: []
+  onLastDrops:
+    m_PersistentCalls:
+      m_Calls: []
+  onFailedDrop:
+    m_PersistentCalls:
+      m_Calls: []

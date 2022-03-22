@@ -37,37 +37,147 @@ public class DropTable : ScriptableObject
     [Serializable]
     public class DropTableEntry
     {
+        //NOTE: only allow either prefab or drop table, not both
         [SerializeField] public GameObject prefab = null;
-        [SerializeField] bool forced = false;
+        //[SerializeField] public DropTable dropTable = null;
+
+        [SerializeField] public bool forced = false;
+        //if not forced
         [SerializeField] public int weight = 1;
         [SerializeField] public IntRange amountToDrop = new IntRange();
-        [SerializeField] public bool allowDuplicates = true;
 
-        public DropTableEntry(GameObject prefab = null, int weight = 0, bool forced = false, IntRange amountRange = null) {
-            this.prefab = prefab;
-            this.weight = weight;
-            this.forced = forced;
-            this.amountToDrop = amountRange;
-        }
+        //NOTE MAKE SURE TO MAKE AN OPTION TO ENABLE/DISABLE ALL
+        [SerializeField] public int repetitionsAllowed = 1;
+        [HideInInspector] public int totalReps = 0;
     }
 
     [SerializeField] public Rarity rarity = Rarity.Common;
     [SerializeField] public List<DropTableEntry> dropList = new List<DropTableEntry>();
-    [SerializeField] public IntRange numberOfDrops = new IntRange();
-    [SerializeField] public bool allowDuplicates = true;
 
-    [SerializeField] public int tableWeight = 1;
+    //[SerializeField] public int tableWeight = 1;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    public void AddEntry(DropTableEntry entry) {
+        dropList.Add(entry);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    public void RemoveEntry(DropTableEntry entry) {
+        dropList.Remove(entry);
+    }
+
+    public void ClearEntries() {
+        dropList.Clear();
+    }
+
+    public List<GameObject> GetDropPrefabs(){
+        List<GameObject> prefabs = new List<GameObject>();
+
+        List<DropTableEntry> entries = GetValidRepOfEntries();
+
+        foreach (DropTableEntry entry in entries) {
+            if (entry.prefab != null) {
+
+
+                prefabs.Add(entry.prefab);
+
+                entry.totalReps++;
+            }
+        }
+
+        return null;
+    }
+
+    private List<DropTableEntry> GetValidRepOfEntries() {
+        List<DropTableEntry> validEntries = new List<DropTableEntry>();
+
+        //get all forced
+        List<DropTableEntry> forcedEntries = GetAllValidForcedEntries();
+
+        //get random
+        DropTableEntry randomEntry = GetRandomValidNoForcedEntry();
+
+        //add to list
+        if (forcedEntries.Count > 0) {
+            validEntries.AddRange(forcedEntries);
+        }
+        if (randomEntry != null) {
+            validEntries.Add(randomEntry);
+        }
+
+        if (validEntries.Count > 0) return validEntries;
+
+        return null;
+    }
+
+    private List<DropTableEntry> GetAllValidForcedEntries() {
+        List<DropTableEntry> forcedEntries = new List<DropTableEntry>();
+
+        foreach (DropTableEntry entry in dropList) {
+            if (!CheckEntry(entry)) continue;
+
+            if (entry.forced) {
+                forcedEntries.Add(entry);
+            }
+        }
+
+        return forcedEntries;
+    }
+
+    private DropTableEntry GetRandomValidNoForcedEntry() {
+        List<DropTableEntry> validEntries = new List<DropTableEntry>();
+
+        //get total weight and valid entires
+        int totalWeight = 0;
+        foreach (DropTableEntry entry in dropList) {
+            if (!CheckEntry(entry)) continue;
+            if (entry.forced) continue;
+
+            validEntries.Add(entry);
+            totalWeight += entry.weight;
+        }
+
+        //get random number
+        int randomNumber = UnityEngine.Random.Range(0, totalWeight);
+
+        //get random entry
+        int currentWeight = 0;
+        foreach (DropTableEntry entry in validEntries) {
+            currentWeight += entry.weight;
+            if (randomNumber < currentWeight) {
+                return entry;
+            }
+        }
+
+        //if we get here, something went wrong
+        Debug.Log("No valid non-forced drops found");
+        return null;
+    }
+
+    private bool CheckEntry(DropTableEntry entry) {
+        //check if entry is valid
+        bool isValid = CheckIfEntryIsValid(entry);
+        if (!isValid) return false;
+
+        bool allowedRep = CheckIfAnotherRepAllowed(entry);
+        if (!allowedRep) return false;
+
+        return true;
+    }
+
+    private bool CheckIfAnotherRepAllowed(DropTableEntry entry) {
+        if (entry.repetitionsAllowed > entry.totalReps) {
+            return true;
+        }
+        return false;
+    }
+
+    private bool CheckIfEntryIsValid(DropTableEntry entry) {
+        //check if entry is valid
+        if (entry.prefab != null) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     #if UNITY_EDITOR
