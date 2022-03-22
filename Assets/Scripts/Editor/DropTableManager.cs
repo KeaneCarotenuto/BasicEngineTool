@@ -6,8 +6,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-//Drop table scriptable object + Editor script
-public class DropTable : ScriptableObject
+public class DropTableEditor : MonoBehaviour
 {
     // Start is called before the first frame update
     void Start()
@@ -35,6 +34,7 @@ public class DropTable : ScriptableObject
     [PreferenceItem("DropTable")]
     public static void PreferencesGUI()
     {
+        //display the default location
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField("Default Location:", GUILayout.Width(150));
         EditorGUILayout.LabelField(EditorPrefs.GetString("DropTablePath", "Assets/Resources/DropTables"));
