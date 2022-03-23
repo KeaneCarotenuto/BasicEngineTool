@@ -220,6 +220,8 @@ public class DropTable : ScriptableObject
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUI.backgroundColor = Color.white;
 
+            //NOTE PERHAPS ACTUALLY USE THE RECT TOOL HERE??
+
             //drop list, foldable box
             showDropList = EditorGUILayout.Foldout(showDropList, "Drop List");
             if (showDropList){
