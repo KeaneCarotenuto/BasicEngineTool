@@ -233,7 +233,21 @@ public class DropScript : MonoBehaviour
 
     #if UNITY_EDITOR
 
-    
+    //custom editor
+    [CustomEditor(typeof(DropScript))]
+    public class DropScriptEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            DrawDefaultInspector();
+
+            DropScript myScript = (DropScript)target;
+            if (GUILayout.Button("Do Drop"))
+            {
+                myScript.DoDrop();
+            }
+        }
+    }
 
     #endif
 }
