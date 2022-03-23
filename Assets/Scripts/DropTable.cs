@@ -11,6 +11,7 @@ using UnityEditor;
 [Serializable]
 public class DropTable : ScriptableObject
 {
+
     public enum Rarity
     {
         Common,
@@ -19,6 +20,16 @@ public class DropTable : ScriptableObject
         Epic,
         Legendary
     }
+
+    //public dictionary of rarity colors
+    public static Dictionary<Rarity, Color> RarityColors = new Dictionary<Rarity, Color>()
+    {
+        {Rarity.Common, new Color(1.0f, 1.0f, 1.0f)},
+        {Rarity.Uncommon, new Color(0.1176471f, 1.0f, 0f)},
+        {Rarity.Rare, new Color(0f, 0.4784314f, 0.8666667f)},
+        {Rarity.Epic, new Color(0.6313726f, 0.2078431f, 0.9333333f)},
+        {Rarity.Legendary, new Color(1f, 0.5019608f, 0f)}
+    };
 
     //basic int range for easier editor customising
     [Serializable]
@@ -41,6 +52,8 @@ public class DropTable : ScriptableObject
         [SerializeField] public GameObject prefab = null;
         //[SerializeField] public DropTable dropTable = null;
 
+        [SerializeField] public Rarity rarity = Rarity.Common;
+
         [SerializeField] public bool forced = false;
         //if not forced
         [SerializeField] public int weight = 1;
@@ -49,7 +62,7 @@ public class DropTable : ScriptableObject
         //NOTE MAKE SURE TO MAKE AN OPTION TO ENABLE/DISABLE ALL
         [SerializeField] public int repetitionsAllowed = 1;
         [SerializeField] public bool unlimitedRepsAllowed = false;
-         public int totalReps = 0;
+        [SerializeField] public int totalReps = 0;
     }
 
     [SerializeField] public Rarity rarity = Rarity.Common;
@@ -183,8 +196,49 @@ public class DropTable : ScriptableObject
     }
 
     #if UNITY_EDITOR
+    [CustomEditor(typeof(DropTable))]
+    public class DropTableEditor : Editor
+    {
+        static public bool showDropList = true;
 
+        public override void OnInspectorGUI()
+        {
+            //DrawDefaultInspector();
 
+            DropTable dropTable = (DropTable)target;
+
+            //rarity
+            //set color based on rarity
+            Color color = RarityColors[dropTable.rarity];
+            GUI.backgroundColor = color;
+            dropTable.rarity = (Rarity)EditorGUILayout.EnumPopup("Table Rarity", dropTable.rarity);
+            GUI.backgroundColor = Color.white;
+            
+            //box around next elements
+            EditorGUI.indentLevel++;
+            GUI.backgroundColor = color;
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUI.backgroundColor = Color.white;
+
+            //drop list, foldable box
+            showDropList = EditorGUILayout.Foldout(showDropList, "Drop List");
+            if (showDropList){
+                //drop list
+                for (int i = 0; i < dropTable.dropList.Count; i++) {
+                    DropTableEntry entry = dropTable.dropList[i];
+
+                    
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+
+            //on change save
+            if (GUI.changed) {
+                EditorUtility.SetDirty(dropTable);
+            }
+        }
+    }
 
     #endif
 }

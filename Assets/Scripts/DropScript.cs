@@ -25,21 +25,28 @@ public class DropScript : MonoBehaviour
 
     //Drop options
     [SerializeField] public int repetitionsAllowed = 1;
-     public int totalReps = 0;
+    [SerializeField] public bool unlimitedRepsAllowed = false;
+    [SerializeField] public int totalReps = 0;
     //if multiple {
     [SerializeField] public float dropDelay = 0.0f;
+    private float dropDelayTimer = 0.0f;
     //}
 
     //events
-    [SerializeField] public UnityEvent onSuccessfulDrop = new UnityEvent();
-    [SerializeField] public UnityEvent onFirstDrop = new UnityEvent();
-    [SerializeField] public UnityEvent onLastDrops = new UnityEvent();
-    [SerializeField] public UnityEvent onFailedDrop = new UnityEvent();
+    [SerializeField] public UnityEvent onPrefabDropped = new UnityEvent();
+    [SerializeField] public UnityEvent onSuccessfulDropQueued = new UnityEvent();
+    [SerializeField] public UnityEvent onFirstDropQueued = new UnityEvent();
+    [SerializeField] public UnityEvent onLastDropQueued = new UnityEvent();
+    [SerializeField] public UnityEvent onFailedDropQueued = new UnityEvent();
+
+    private List<GameObject> toDrop = new List<GameObject>();
 
     public bool debugMode = false;
+    public List<Vector3> debugDropLocations = new List<Vector3>();
+    public int debugLocaitonCount = 5000;
 
-    private void OnDrawGizmos() {
-        if (!debugMode) return;
+    private void OnDrawGizmosSelected() {
+        if (!DropScriptEditor.isEditingForce) return;
 
         //draw force and cone
         //calculate position
@@ -50,10 +57,9 @@ public class DropScript : MonoBehaviour
         }
         else if (dropArea != null) {
             //get random point within area
-            Vector3 randomPoint = dropArea.bounds.center + RandomPointInColliderBox(dropArea);
+            Vector3 randomPoint = dropArea.bounds.center;
 
             dropPos = randomPoint;
-            dropPos += dropOffset;
         }
         else {
             dropPos = transform.position;
@@ -63,16 +69,21 @@ public class DropScript : MonoBehaviour
 
         Gizmos.color = Color.red;
         Gizmos.DrawLine(dropPos, dropPos + throwDir);
-        Gizmos.DrawWireSphere(dropPos, throwDir.magnitude/10.0f);
-        Gizmos.DrawWireSphere(dropPos + throwDir, throwDir.magnitude/10.0f);
-        Gizmos.DrawWireSphere(dropPos, throwDir.magnitude);
+        //Gizmos.DrawWireSphere(dropPos, throwDir.magnitude/10.0f);
+        //Gizmos.DrawWireSphere(dropPos + throwDir, throwDir.magnitude/10.0f);
+        //Gizmos.DrawWireSphere(dropPos, throwDir.magnitude);
+        if (debugLocaitonCount < 0) debugLocaitonCount = 0;
+        if (debugLocaitonCount > 10000) debugLocaitonCount = 10000;
+        debugDropLocations.Add(dropPos + RandomPointOnSphereRandomAngle(throwDir, randomAngleArc));
+        while (debugDropLocations.Count > debugLocaitonCount) {
+            debugDropLocations.RemoveAt(0);
+        }
 
 
-        //draw random line
-        Gizmos.color = Color.green;
-        Vector3 start = throwDir;
-        for (int i = 0; i < 50; i++) {
-            Gizmos.DrawLine(dropPos, dropPos + RandomPointOnSphereRandomAngle(throwDir, randomAngleArc));
+        //draw drop locations as spheres
+        Gizmos.color = Color.red;
+        foreach (Vector3 pos in debugDropLocations) {
+            Gizmos.DrawSphere(pos, 0.1f);
         }
         
     }
@@ -88,28 +99,49 @@ public class DropScript : MonoBehaviour
             dropTable = Instantiate(dropTable);
             dropTable.name = name;
         }
+
+        debugMode = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        //use drop delay to drop items
+        if (toDrop.Count > 0)
+        {
+            dropDelayTimer += Time.deltaTime;
+            if (dropDelayTimer >= dropDelay)
+            {
+                dropDelayTimer = 0.0f;
+                DropObject(toDrop[0]);
+                toDrop.RemoveAt(0);
+            }
+        }
     }
 
     //probably have to hook this up to update loop to do it with delays
-    public void DoDrop(){
-        if (!CheckTable(dropTable)) return;
-        Debug.Log("DropScript: DoDrop " + totalReps);
+    public void QueueDrop(){
+        if (!CheckTable(dropTable)) goto fail;
 
-        List<GameObject> toDrop = new List<GameObject>();
-        toDrop = dropTable.GetDropPrefabs();
-        if (toDrop == null || toDrop.Count <= 0) return;
+        List<GameObject> dropsToAdd = dropTable.GetDropPrefabs();
+        if (dropsToAdd == null || dropsToAdd.Count <= 0) goto fail;
 
-        foreach (GameObject drop in toDrop){
-            DropObject(drop);
+        //add all drops to list
+        foreach (GameObject drop in dropsToAdd)
+        {
+            if (drop == null) continue;
+            toDrop.Add(drop);
         }
 
         totalReps++;
+        if (totalReps == 1) onFirstDropQueued.Invoke();
+        else if (totalReps == repetitionsAllowed) onLastDropQueued.Invoke();
+        onSuccessfulDropQueued.Invoke();
+        return;
+
+        fail: 
+        onFailedDropQueued.Invoke();
+        return;
     }
 
     private void DropObject(GameObject drop){
@@ -126,7 +158,6 @@ public class DropScript : MonoBehaviour
             Vector3 randomPoint = dropArea.bounds.center + RandomPointInColliderBox(dropArea);
 
             dropPos = randomPoint;
-            dropPos += dropOffset;
         }
         else {
             dropPos = transform.position;
@@ -146,6 +177,7 @@ public class DropScript : MonoBehaviour
             rb.velocity = throwDir;
         }
 
+        onPrefabDropped.Invoke();
     }
 
     public Vector3 RandomPointInColliderBox(Collider collider){
@@ -179,29 +211,6 @@ public class DropScript : MonoBehaviour
         return target.normalized * direction.magnitude;
     }
 
-    private void TESTSimpleDrop(){
-        //check reps
-        if (totalReps >= repetitionsAllowed)
-        {
-            return;
-        }
-
-        List<GameObject> toDrop = new List<GameObject>();
-
-        if (dropTable != null){
-            toDrop = dropTable.GetDropPrefabs();
-        }
-        if (toDrop == null || toDrop.Count <= 0) return;
-
-        if (toDrop.Count > 0){
-            //drop
-            
-        }
-
-        //increment total reps
-        totalReps++;
-    }
-
     private bool CheckTable(DropTable table){
         //is valid
         bool isValid = CheckIfTableIsValid(table);
@@ -233,84 +242,285 @@ public class DropScript : MonoBehaviour
 
     #if UNITY_EDITOR
 
-    static private bool showLocationSettings = false;
-
     //custom editor
     [CustomEditor(typeof(DropScript))]
     public class DropScriptEditor : Editor
     {
+        static Quaternion tempRot = Quaternion.identity;
+        static public bool isEditingForce = false;
+        static public bool showEvents = false;
+
+        //styles
+        static GUIStyle boldCenterLabelStyle = new GUIStyle();
+        static GUIStyle boldLabelStyle = new GUIStyle();
+        static GUIStyle centerLabelStyle = new GUIStyle();
+        static Color defaultBgColor = Color.white;
+
         public override void OnInspectorGUI()
         {
-            DropScript myScript = (DropScript)target;
-
-            GUIStyle boldCenterLabelStyle = new GUIStyle(EditorStyles.label);
+            boldCenterLabelStyle = new GUIStyle(EditorStyles.label);
             boldCenterLabelStyle.fontStyle = FontStyle.Bold;
             boldCenterLabelStyle.alignment = TextAnchor.MiddleCenter;
 
-            GUIStyle centerLabelStyle = new GUIStyle(EditorStyles.label);
+            boldLabelStyle = new GUIStyle(EditorStyles.label);
+            boldLabelStyle.fontStyle = FontStyle.Bold;
+
+            centerLabelStyle = new GUIStyle(EditorStyles.label);
             centerLabelStyle.alignment = TextAnchor.MiddleCenter;
+
+            defaultBgColor = GUI.backgroundColor;
+
+            DropScript myScript = (DropScript)target;
+
+            defaultBgColor = GUI.backgroundColor;
 
             //DrawDefaultInspector();
 
+            //create coloured box around next elements
+            GUI.backgroundColor = Color.blue;
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUI.backgroundColor = defaultBgColor;
+
             //Custom display starts here
-            DrawDropTable(boldCenterLabelStyle, myScript);
+            DrawDropTable(myScript);
 
             EditorGUILayout.Space();
 
-            //create coloured box around next elements
-            Color oldColor = GUI.backgroundColor;
-            GUI.backgroundColor = Color.green;
-            //begin with some padding
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            GUI.backgroundColor = oldColor;
+            //reps
+            DrawReps(myScript);
+            EditorGUILayout.EndVertical();
 
-            //indent
-            EditorGUI.indentLevel++;
-            //foldout for location and offset
-            showLocationSettings = EditorGUILayout.Foldout(showLocationSettings, "Drop Settings");
-            if (showLocationSettings)
+            EditorGUILayout.Space();
+            
+            DrawLocationSettings(myScript);
+
+            EditorGUILayout.Space();
+
+            //events
+            DrawEvents(myScript);
+
+
+
+            //on change, save
+            if (GUI.changed)
             {
-                DrawLocation(boldCenterLabelStyle, myScript);
-                DrawOffset(myScript);
-                DrawThrowForce(myScript);
+                myScript.debugDropLocations.Clear();
+                EditorUtility.SetDirty(target);
+            }
+        }
 
-                if (myScript.throwForce.magnitude > 0)
-                {
-                    DrawRandomAngleArc(myScript);
-                }
+        private void DrawEvents(DropScript myScript)
+        {
+            //red box around next elements
+            GUI.backgroundColor = Color.red;
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUI.backgroundColor = defaultBgColor;
+
+            //create serialized object for events
+            SerializedObject so = new SerializedObject(myScript);
+            SerializedProperty prefabDropped = so.FindProperty("onPrefabDropped");
+            SerializedProperty sucDropQue = so.FindProperty("onSuccessfulDropQueued");
+            SerializedProperty firstDropQue = so.FindProperty("onFirstDropQueued");
+            SerializedProperty lastDropQue = so.FindProperty("onLastDropQueued");
+            SerializedProperty failDropQue = so.FindProperty("onFailedDropQueued");
+
+
+            //foldable header
+            showEvents = EditorGUILayout.Foldout(showEvents, "Events");
+            if (showEvents)
+            {
+                EditorGUILayout.PropertyField(prefabDropped, true);
+                EditorGUILayout.PropertyField(sucDropQue, true);
+                EditorGUILayout.PropertyField(firstDropQue, true);
+                EditorGUILayout.PropertyField(lastDropQue, true);
+                EditorGUILayout.PropertyField(failDropQue, true);
             }
 
             EditorGUILayout.EndVertical();
+
+            so.ApplyModifiedProperties();
+
+        }
+
+        private void DrawReps(DropScript myScript)
+        {
+            EditorGUILayout.LabelField("Repetitions", boldCenterLabelStyle);
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
+            //total
+            EditorGUILayout.LabelField("Total Done", GUILayout.MaxWidth(65));
+            myScript.totalReps = EditorGUILayout.IntField(myScript.totalReps, GUILayout.MaxWidth(100));
+            //allowed
+            EditorGUI.BeginDisabledGroup(myScript.unlimitedRepsAllowed);
+            EditorGUILayout.LabelField("Allowed", GUILayout.MaxWidth(50));
+            myScript.repetitionsAllowed = EditorGUILayout.IntField(myScript.repetitionsAllowed, GUILayout.MaxWidth(100));
+            EditorGUI.EndDisabledGroup();
+            //unlimited
+            EditorGUILayout.LabelField("Unlimited", GUILayout.MaxWidth(60));
+            myScript.unlimitedRepsAllowed = EditorGUILayout.Toggle(myScript.unlimitedRepsAllowed, GUILayout.MaxWidth(20));
+
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawLocationSettings(DropScript myScript)
+        {
+            //create coloured box around next elements
+            GUI.backgroundColor = Color.green;
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUI.backgroundColor = defaultBgColor;
+
+            //indent
+            EditorGUI.indentLevel++;
+
+            //foldout for location and offset
+            EditorGUILayout.LabelField("Drop Settings", boldCenterLabelStyle);
+
+            DrawLocation(myScript);
+            DrawOffset(myScript);
+            DrawThrowForce(myScript);
+
+            if (myScript.throwForce.magnitude > 0)
+            {
+                DrawRandomAngleArc(myScript);
+            }
+
+            DrawEditThrowButton(myScript);
+
+            EditorGUILayout.Space();
+
+            DrawDelay(myScript);
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private static void DrawDelay(DropScript myScript)
+        {
+            //delay
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Delay", GUILayout.MaxWidth(100));
+            myScript.dropDelay = EditorGUILayout.FloatField(myScript.dropDelay);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private static void DrawEditThrowButton(DropScript myScript)
+        {
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            //button to toggle isEditingForce, if true, make button green
+            GUI.backgroundColor = isEditingForce ? Color.green : Color.white;
+            if (GUILayout.Button("Toggle Edit Throw Vector"))
+            {
+                isEditingForce = !isEditingForce;
+                if (!isEditingForce)
+                {
+                    //round throwforce to nearest 0.001
+                    myScript.throwForce = new Vector3(Mathf.Round(myScript.throwForce.x * 100) / 100, Mathf.Round(myScript.throwForce.y * 100) / 100, Mathf.Round(myScript.throwForce.z * 100) / 100);
+                }
+                else
+                {
+                    //focus on throw force
+                    //SceneView.lastActiveSceneView.LookAt(myScript.transform.position + myScript.throwForce, SceneView.lastActiveSceneView.rotation);
+                }
+                //make temprot equal to current throw force as Angle
+                tempRot = Quaternion.LookRotation(myScript.throwForce);
+
+                SceneView.RepaintAll();
+            }
+            GUI.backgroundColor = defaultBgColor;
+            //debugLocaitonCount
+            if (isEditingForce){
+                EditorGUILayout.LabelField("Debug Arc Points", GUILayout.MaxWidth(150));
+                myScript.debugLocaitonCount = EditorGUILayout.IntField(myScript.debugLocaitonCount, GUILayout.MaxWidth(100));
+            }
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
         }
 
         private void OnSceneGUI() {
             //draw throw force line with handle
             DropScript myScript = (DropScript)target;
 
-            if (myScript.throwForce.magnitude > 0)
+            //calculate position
+            Vector3 dropPos = Vector3.zero;
+            if (myScript.dropLocation != null) {
+                dropPos = myScript.dropLocation.position;
+                dropPos += myScript.dropOffset;
+            }
+            else if (myScript.dropArea != null) {
+                //get random point within area
+                Vector3 centerPoint = myScript.dropArea.bounds.center;
+
+                dropPos = centerPoint;
+            }
+            else {
+                dropPos = myScript.transform.position;
+            }
+
+            Vector3 start = dropPos;
+
+            //if this object is selected, draw force line
+            if (Selection.activeGameObject == myScript.gameObject)
             {
-                Vector3 start = myScript.dropLocation.position + myScript.dropOffset;
-                myScript.throwForce = Handles.PositionHandle(start + myScript.throwForce, Quaternion.LookRotation(myScript.throwForce)) - start;
+                //draw line
+                Handles.color = Color.green;
+                Handles.DrawLine(start, myScript.throwForce + start);
+                //draw sphere at start and end
+                Handles.SphereHandleCap(0, start, Quaternion.identity, 0.1f, EventType.Repaint);
+                Handles.SphereHandleCap(0, myScript.throwForce + start, Quaternion.identity, 0.1f, EventType.Repaint);
+            }
+
+            if (isEditingForce && myScript.throwForce.magnitude > 0)
+            {
+                myScript.debugMode = true;
+
+                //select hand tool
+                Tools.current = Tool.View;
+
                 Handles.color = Color.green;
                 Handles.DrawLine(start, myScript.throwForce + start);
 
+                //magnitude
+                float val = Handles.ScaleValueHandle(myScript.throwForce.magnitude, start + myScript.throwForce, Quaternion.LookRotation(myScript.throwForce), 2.0f, Handles.ConeHandleCap, 1.0f);
+                myScript.throwForce = myScript.throwForce.normalized * val;
+
+                //rotation
+                tempRot = Handles.RotationHandle(tempRot, start);
+                myScript.throwForce = (tempRot * Vector3.forward).normalized * myScript.throwForce.magnitude;
+            }
+            else{
+                myScript.debugMode = false;
+            }
+
+            //if changes made, save them
+            if (GUI.changed)
+            {
+                myScript.debugDropLocations.Clear();
+                EditorUtility.SetDirty(myScript);
             }
         }
 
-        private static void DrawDropTable(GUIStyle boldCenterLabelStyle, DropScript myScript)
+        private static void DrawDropTable(DropScript myScript)
         {
             //center aligned label with bold font "Drop Table"
             EditorGUILayout.LabelField("Drop Table", boldCenterLabelStyle);
+
+            EditorGUILayout.BeginHorizontal();
             //drop table field
             myScript.dropTable = (DropTable)EditorGUILayout.ObjectField(myScript.dropTable, typeof(DropTable), true);
+
+            EditorGUILayout.EndHorizontal();
         }
 
-        private static void DrawLocation(GUIStyle boldCenterLabelStyle, DropScript myScript)
+        private static void DrawLocation(DropScript myScript)
         {
             //center aligned label with bold font "Drop Location"
-            EditorGUILayout.LabelField("Location", boldCenterLabelStyle);
+            
             //two options for drop location side by side, transofrm or collider
             EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(new GUIContent("Location", "Here is a tooltip"), boldLabelStyle, GUILayout.MaxWidth(100));
 
             //drop location transform
             if (myScript.dropLocation != null)
@@ -371,11 +581,18 @@ public class DropScript : MonoBehaviour
 
         private static void DrawThrowForce(DropScript myScript)
         {
+            //begin disabled group
+            EditorGUI.BeginDisabledGroup(isEditingForce);
+
             //throw force
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Throw Force", GUILayout.MaxWidth(100));
             myScript.throwForce = EditorGUILayout.Vector3Field("", myScript.throwForce);
+            myScript.throwForce = new Vector3(Mathf.Round(myScript.throwForce.x * 100) / 100, Mathf.Round(myScript.throwForce.y * 100) / 100, Mathf.Round(myScript.throwForce.z * 100) / 100);
             EditorGUILayout.EndHorizontal();
+
+            //end disabled group
+            EditorGUI.EndDisabledGroup();
         }
 
         private void DrawRandomAngleArc(DropScript myScript)

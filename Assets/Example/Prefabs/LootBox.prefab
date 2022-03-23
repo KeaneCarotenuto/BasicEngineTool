@@ -169,15 +169,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1dc96aa4e2d6670449dc28801b4655f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dropTable: {fileID: 11400000, guid: a3dc0ccea7bd4fc44985dc9b37c6ebcb, type: 2}
-  dropLocation: {fileID: 1802029627009261300}
-  dropArea: {fileID: 0}
-  dropOffset: {x: 0, y: 0, z: 0}
-  throwForce: {x: 0, y: 5, z: 0}
-  randomAngleArc: 180
+  dropTable: {fileID: 11400000, guid: c68973ec77704f743bda0ae866c9ebd9, type: 2}
+  dropLocation: {fileID: 0}
+  dropArea: {fileID: 1333756100}
+  dropOffset: {x: 0, y: 1, z: 0}
+  throwForce: {x: -2.48, y: 3.94, z: -0}
+  randomAngleArc: 90
   repetitionsAllowed: 10
+  unlimitedRepsAllowed: 0
   totalReps: 0
-  dropDelay: 0.1
+  dropDelay: 0.5
   onSuccessfulDrop:
     m_PersistentCalls:
       m_Calls: []
@@ -191,3 +192,5 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   debugMode: 0
+  debugDropLocations: []
+  debugLocaitonCount: 500

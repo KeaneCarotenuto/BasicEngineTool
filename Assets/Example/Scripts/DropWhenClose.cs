@@ -18,7 +18,7 @@ public class DropWhenClose : MonoBehaviour
     private void Update() {
         if (dropScript != null && Vector3.Distance(transform.position, objectToTrack.position) < distance) {
             //do drop
-            dropScript.DoDrop();
+            dropScript.QueueDrop();
         }
     }
 }
