@@ -233,19 +233,158 @@ public class DropScript : MonoBehaviour
 
     #if UNITY_EDITOR
 
+    static private bool showLocationSettings = false;
+
     //custom editor
     [CustomEditor(typeof(DropScript))]
     public class DropScriptEditor : Editor
     {
         public override void OnInspectorGUI()
         {
-            DrawDefaultInspector();
-
             DropScript myScript = (DropScript)target;
-            if (GUILayout.Button("Do Drop"))
+
+            GUIStyle boldCenterLabelStyle = new GUIStyle(EditorStyles.label);
+            boldCenterLabelStyle.fontStyle = FontStyle.Bold;
+            boldCenterLabelStyle.alignment = TextAnchor.MiddleCenter;
+
+            GUIStyle centerLabelStyle = new GUIStyle(EditorStyles.label);
+            centerLabelStyle.alignment = TextAnchor.MiddleCenter;
+
+            //DrawDefaultInspector();
+
+            //Custom display starts here
+            DrawDropTable(boldCenterLabelStyle, myScript);
+
+            EditorGUILayout.Space();
+
+            //create coloured box around next elements
+            Color oldColor = GUI.backgroundColor;
+            GUI.backgroundColor = Color.green;
+            //begin with some padding
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUI.backgroundColor = oldColor;
+
+            //indent
+            EditorGUI.indentLevel++;
+            //foldout for location and offset
+            showLocationSettings = EditorGUILayout.Foldout(showLocationSettings, "Drop Settings");
+            if (showLocationSettings)
             {
-                myScript.DoDrop();
+                DrawLocation(boldCenterLabelStyle, myScript);
+                DrawOffset(myScript);
+                DrawThrowForce(myScript);
+
+                if (myScript.throwForce.magnitude > 0)
+                {
+                    DrawRandomAngleArc(myScript);
+                }
             }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void OnSceneGUI() {
+            //draw throw force line with handle
+            DropScript myScript = (DropScript)target;
+
+            if (myScript.throwForce.magnitude > 0)
+            {
+                Vector3 start = myScript.dropLocation.position + myScript.dropOffset;
+                myScript.throwForce = Handles.PositionHandle(start + myScript.throwForce, Quaternion.LookRotation(myScript.throwForce)) - start;
+                Handles.color = Color.green;
+                Handles.DrawLine(start, myScript.throwForce + start);
+
+            }
+        }
+
+        private static void DrawDropTable(GUIStyle boldCenterLabelStyle, DropScript myScript)
+        {
+            //center aligned label with bold font "Drop Table"
+            EditorGUILayout.LabelField("Drop Table", boldCenterLabelStyle);
+            //drop table field
+            myScript.dropTable = (DropTable)EditorGUILayout.ObjectField(myScript.dropTable, typeof(DropTable), true);
+        }
+
+        private static void DrawLocation(GUIStyle boldCenterLabelStyle, DropScript myScript)
+        {
+            //center aligned label with bold font "Drop Location"
+            EditorGUILayout.LabelField("Location", boldCenterLabelStyle);
+            //two options for drop location side by side, transofrm or collider
+            EditorGUILayout.BeginHorizontal();
+
+            //drop location transform
+            if (myScript.dropLocation != null)
+            {
+                //enabled drop location field
+                myScript.dropLocation = (Transform)EditorGUILayout.ObjectField(myScript.dropLocation, typeof(Transform), true);
+            }
+            else if (myScript.dropArea != null)
+            {
+                //disabled drop location field
+                EditorGUI.BeginDisabledGroup(true);
+                myScript.dropLocation = (Transform)EditorGUILayout.ObjectField(myScript.dropLocation, typeof(Transform), true);
+                EditorGUI.EndDisabledGroup();
+            }
+            else
+            {
+                //enabled drop location field
+                myScript.dropLocation = (Transform)EditorGUILayout.ObjectField(myScript.dropLocation, typeof(Transform), true);
+            }
+
+            //center "or"
+            EditorGUILayout.LabelField("or", new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleCenter }, GUILayout.MaxWidth(30));
+
+
+            //drop area collider
+            if (myScript.dropArea != null && myScript.dropLocation == null)
+            {
+                //enabled drop area field
+                myScript.dropArea = (Collider)EditorGUILayout.ObjectField(myScript.dropArea, typeof(Collider), true);
+            }
+            else if (myScript.dropLocation != null)
+            {
+                //disabled drop area field
+                EditorGUI.BeginDisabledGroup(true);
+                myScript.dropArea = (Collider)EditorGUILayout.ObjectField(myScript.dropArea, typeof(Collider), true);
+                EditorGUI.EndDisabledGroup();
+            }
+            else
+            {
+                //enabled drop area field
+                myScript.dropArea = (Collider)EditorGUILayout.ObjectField(myScript.dropArea, typeof(Collider), true);
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private static void DrawOffset(DropScript myScript)
+        {
+            //if transform or area, draw offset
+            if (myScript.dropLocation != null)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Offset", GUILayout.MaxWidth(100));
+                myScript.dropOffset = EditorGUILayout.Vector3Field("", myScript.dropOffset);
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+
+        private static void DrawThrowForce(DropScript myScript)
+        {
+            //throw force
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Throw Force", GUILayout.MaxWidth(100));
+            myScript.throwForce = EditorGUILayout.Vector3Field("", myScript.throwForce);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawRandomAngleArc(DropScript myScript)
+        {
+            //random angle arc
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Random Angle Arc", GUILayout.MaxWidth(100));
+            myScript.randomAngleArc = EditorGUILayout.Slider(myScript.randomAngleArc, 0, 360);
+            EditorGUILayout.EndHorizontal();
         }
     }
 

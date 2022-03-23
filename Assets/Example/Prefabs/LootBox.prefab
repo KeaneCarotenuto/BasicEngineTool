@@ -170,8 +170,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dropTable: {fileID: 11400000, guid: a3dc0ccea7bd4fc44985dc9b37c6ebcb, type: 2}
-  dropLocation: {fileID: 0}
-  dropArea: {fileID: 1333756100}
+  dropLocation: {fileID: 1802029627009261300}
+  dropArea: {fileID: 0}
   dropOffset: {x: 0, y: 0, z: 0}
   throwForce: {x: 0, y: 5, z: 0}
   randomAngleArc: 180
