@@ -57,12 +57,15 @@ public class DropTable : ScriptableObject
         [SerializeField] public bool forced = false;
         //if not forced
         [SerializeField] public int weight = 1;
+        [SerializeField] public float effectiveChance = 1.0f;
         [SerializeField] public IntRange amountToDrop = new IntRange();
 
         //NOTE MAKE SURE TO MAKE AN OPTION TO ENABLE/DISABLE ALL
         [SerializeField] public int repetitionsAllowed = 1;
         [SerializeField] public bool unlimitedRepsAllowed = false;
         [SerializeField] public int totalReps = 0;
+
+        [SerializeField] public bool showDropInTable = false;
     }
 
     [SerializeField] public Rarity rarity = Rarity.Common;
@@ -195,6 +198,33 @@ public class DropTable : ScriptableObject
         return true;
     }
 
+    private void ValidateAmount(){
+        foreach (DropTableEntry entry in dropList) {
+            if (entry.amountToDrop.min < 0) entry.amountToDrop.min = 0;
+            if (entry.amountToDrop.max < 0) entry.amountToDrop.max = 0;
+
+            if (entry.amountToDrop.min > entry.amountToDrop.max) {
+                entry.amountToDrop.max = entry.amountToDrop.min;
+            }
+        }
+    }
+
+    private void CalculateEffectiveChances() {
+        //get total weight and valid entires
+        int totalWeight = 0;
+        foreach (DropTableEntry entry in dropList) {
+            if (!CheckEntry(entry)) continue;
+            if (entry.forced) continue;
+
+            totalWeight += entry.weight;
+        }
+
+        foreach (DropTableEntry entry in dropList) {
+            entry.effectiveChance = (float)entry.weight / (float)totalWeight;
+            if (entry.forced) entry.effectiveChance = 1.0f;
+        }
+    }
+
     #if UNITY_EDITOR
     [CustomEditor(typeof(DropTable))]
     public class DropTableEditor : Editor
@@ -234,7 +264,7 @@ public class DropTable : ScriptableObject
             
             //box around next elements
             EditorGUI.indentLevel++;
-            GUI.backgroundColor = color;
+            //GUI.backgroundColor = color;
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUI.backgroundColor = Color.white;
 
@@ -249,50 +279,110 @@ public class DropTable : ScriptableObject
 
                     float tempWidth = EditorGUIUtility.currentViewWidth;
 
+                    Color entryCol = RarityColors[entry.rarity];
+                    GUI.backgroundColor = entryCol;
+
                     //draw rect
                     EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    
+                    GUI.backgroundColor = Color.white;
 
-                        //horiz
+                        //horiz - drop and stats
                         EditorGUILayout.BeginHorizontal();
                             //drop
                             EditorGUILayout.BeginVertical();
-                                tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f) / 2.0f;
-                                EditorGUILayout.LabelField("Drop", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
+                                tempWidth = (EditorGUIUtility.currentViewWidth - 20.0f) * 0.5f;
+                                entry.showDropInTable = EditorGUILayout.Foldout(entry.showDropInTable, "Drop");
                                 entry.prefab = (GameObject)EditorGUILayout.ObjectField(entry.prefab, typeof(GameObject), false, GUILayout.MaxWidth(tempWidth));
                             EditorGUILayout.EndVertical();
+
+                            //forced
+                            EditorGUILayout.BeginVertical();
+                                tempWidth = (EditorGUIUtility.currentViewWidth - 20.0f) * (0.5f / 3.0f);
+                                EditorGUILayout.LabelField("Forced", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
+                                entry.forced = EditorGUILayout.Toggle(entry.forced, GUILayout.MaxWidth(tempWidth));
+                            EditorGUILayout.EndVertical();
+
                             //weight
                             EditorGUILayout.BeginVertical();
-                                tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f) / 2.0f;
+                                tempWidth = (EditorGUIUtility.currentViewWidth - 20.0f) * (0.5f / 2.0f);
                                 EditorGUILayout.LabelField("Weight", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
                                 entry.weight = EditorGUILayout.IntField(entry.weight, GUILayout.MaxWidth(tempWidth));
                             EditorGUILayout.EndVertical();
+                            //effective chance
+                            EditorGUILayout.BeginVertical();
+                                tempWidth = (EditorGUIUtility.currentViewWidth - 20.0f) * (0.5f / 2.0f);
+                                EditorGUILayout.LabelField("Chance", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
+                                EditorGUILayout.LabelField((entry.effectiveChance * 100.0f).ToString("0.0") + "%", GUILayout.MaxWidth(tempWidth));
+                            EditorGUILayout.EndVertical();
                             //amount
                             GUILayout.FlexibleSpace();
+                            
                         EditorGUILayout.EndHorizontal();
 
-                        //horiz
-                        EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.BeginVertical();
-                                tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f);
-                                EditorGUILayout.BeginHorizontal();
-                                    EditorGUILayout.LabelField("AMOUNT [min: " + entry.amountToDrop.min + "][max: " + entry.amountToDrop.max + "]", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
-                                    EditorGUILayout.LabelField("Infinite?", boldLabelStyle, GUILayout.MaxWidth(65.0f));
-                                    entry.unlimitedRepsAllowed = EditorGUILayout.Toggle(entry.unlimitedRepsAllowed);
-                                    GUILayout.FlexibleSpace();
-                                EditorGUILayout.EndHorizontal();
-                                EditorGUILayout.BeginHorizontal();
-                                    float min = entry.amountToDrop.min; float max = entry.amountToDrop.max;
-                                    EditorGUILayout.MinMaxSlider(ref min, ref max, 0, 100, GUILayout.MaxWidth(tempWidth));
-                                    entry.amountToDrop.min = (int)min; entry.amountToDrop.max = (int)max;
-                                EditorGUILayout.EndHorizontal();
-                            EditorGUILayout.EndVertical();
-                            //end horiz
-                            GUILayout.FlexibleSpace();
-                        EditorGUILayout.EndHorizontal();
+                        EditorGUILayout.Space();
 
+                        if (entry.showDropInTable) {
 
                         // rarity
-                        entry.rarity = (Rarity)EditorGUILayout.EnumPopup("Rarity", entry.rarity);
+                        EditorGUILayout.LabelField("Rarity");
+                        entry.rarity = (Rarity)EditorGUILayout.EnumPopup(entry.rarity);
+
+                        EditorGUILayout.Space();
+
+                        //horiz - Amount
+                        EditorGUILayout.BeginHorizontal();
+                            tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f);
+                            EditorGUILayout.BeginVertical();
+                                EditorGUILayout.LabelField("Rand Amount [min][max]", boldLabelStyle , GUILayout.MaxWidth(tempWidth*0.8f));
+                                EditorGUILayout.BeginHorizontal();
+                                    entry.amountToDrop.min = EditorGUILayout.IntField(entry.amountToDrop.min, GUILayout.MaxWidth(100.0f));
+                                    entry.amountToDrop.max = EditorGUILayout.IntField(entry.amountToDrop.max, GUILayout.MaxWidth(100.0f));
+
+                                EditorGUILayout.EndHorizontal();
+                            EditorGUILayout.EndVertical();
+                            GUILayout.FlexibleSpace();    
+                        //end horiz
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.Space();
+
+                        //horiz - reps
+                        EditorGUILayout.BeginHorizontal();
+                            tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f);
+                            EditorGUILayout.BeginVertical();
+                                EditorGUI.BeginDisabledGroup(entry.unlimitedRepsAllowed);
+                                EditorGUILayout.LabelField("Repititions [total][allowed]", boldLabelStyle , GUILayout.MaxWidth(tempWidth*0.8f));
+                                EditorGUILayout.BeginHorizontal();
+                                    EditorGUI.BeginDisabledGroup(true); entry.totalReps = EditorGUILayout.IntField(entry.totalReps, GUILayout.MaxWidth(100.0f)); EditorGUI.EndDisabledGroup();
+                                    entry.repetitionsAllowed = EditorGUILayout.IntField(entry.repetitionsAllowed, GUILayout.MaxWidth(100.0f));
+                                EditorGUILayout.EndHorizontal();
+                                EditorGUI.EndDisabledGroup();
+                            EditorGUILayout.EndVertical();
+                            EditorGUILayout.BeginVertical();
+                                EditorGUILayout.LabelField("Infinite?");
+                                entry.unlimitedRepsAllowed = EditorGUILayout.Toggle(entry.unlimitedRepsAllowed);
+                            EditorGUILayout.EndVertical();
+                            GUILayout.FlexibleSpace();
+                        //end horiz
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUILayout.Space();
+                        }
+
+                        //horiz - delete
+                        EditorGUILayout.BeginHorizontal();
+                            tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f);
+                            EditorGUILayout.BeginVertical();
+                                EditorGUILayout.LabelField("Delete", boldLabelStyle , GUILayout.MaxWidth(tempWidth*0.8f));
+                                if (GUILayout.Button("Delete", GUILayout.MaxWidth(100.0f))) {
+                                    dropTable.dropList.RemoveAt(i);
+                                    i--;
+                                }
+                            EditorGUILayout.EndVertical();
+                            GUILayout.FlexibleSpace();
+                        //end horiz
+                        EditorGUILayout.EndHorizontal();
 
                     //end rect
                     EditorGUILayout.EndVertical();
@@ -304,6 +394,10 @@ public class DropTable : ScriptableObject
 
             //on change save
             if (GUI.changed) {
+                //calculate all effective chances
+                dropTable.CalculateEffectiveChances();
+                dropTable.ValidateAmount();
+
                 EditorUtility.SetDirty(dropTable);
             }
         }

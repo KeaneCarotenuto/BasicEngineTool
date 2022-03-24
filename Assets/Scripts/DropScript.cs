@@ -135,7 +135,7 @@ public class DropScript : MonoBehaviour
 
         totalReps++;
         if (totalReps == 1) onFirstDropQueued.Invoke();
-        else if (totalReps == repetitionsAllowed) onLastDropQueued.Invoke();
+        else if (!unlimitedRepsAllowed && totalReps == repetitionsAllowed) onLastDropQueued.Invoke();
         onSuccessfulDropQueued.Invoke();
         return;
 
@@ -224,7 +224,7 @@ public class DropScript : MonoBehaviour
     }
 
     private bool CheckIfAnotherRepAllowed(){
-        if (totalReps >= repetitionsAllowed)
+        if (!unlimitedRepsAllowed && totalReps >= repetitionsAllowed)
         {
             return false;
         }
