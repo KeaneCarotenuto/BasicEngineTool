@@ -332,6 +332,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LootBox
       objectReference: {fileID: 0}
+    - target: {fileID: 1802029627009261297, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
+      propertyPath: m_Center.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1802029627009261300, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -376,6 +380,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1802029627009261301, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
+      propertyPath: debugMode
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
 --- !u!1001 &4131039956667060990
@@ -385,6 +393,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4131039958043278764, guid: f55619ad361aa8741b00e38c2caa0a36, type: 3}
+      propertyPath: jumpHeight
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4131039958043278764, guid: f55619ad361aa8741b00e38c2caa0a36, type: 3}
+      propertyPath: groundDistance
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 4131039958043278767, guid: f55619ad361aa8741b00e38c2caa0a36, type: 3}
       propertyPath: m_RootOrder
       value: 1
