@@ -469,6 +469,19 @@ public class DropScript : MonoBehaviour
 
                 GUILayout.FlexibleSpace();
             EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space();
+
+            //if in play mode, show reset button
+            if (Application.isPlaying){
+                //reset
+                if (GUILayout.Button(new GUIContent("Debug: Reset All Reps Done", "Resets the total reps for table, and all entries")))
+                {
+                    myScript.ResetAllRepsDone();
+                }
+
+                EditorGUILayout.Space();
+            }
         }
 
         /// <summary>
@@ -504,6 +517,8 @@ public class DropScript : MonoBehaviour
                 EditorGUILayout.Space();
 
                 DrawDelay(myScript);
+
+                EditorGUILayout.Space();
 
             EditorGUILayout.EndVertical();
         }
