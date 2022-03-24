@@ -17,11 +17,11 @@ MonoBehaviour:
   - prefab: {fileID: 3105367325519366748, guid: 8964d909c20cf094dadfe975d5407800, type: 3}
     rarity: 0
     forced: 1
-    weight: 6
+    weight: 1
     effectiveChance: 1
     amountToDrop:
-      min: 10
-      max: 15
+      min: 5
+      max: 10
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0
@@ -29,11 +29,11 @@ MonoBehaviour:
   - prefab: {fileID: 4678064034030620201, guid: f000c5ef462fdf446aa6675608be5884, type: 3}
     rarity: 1
     forced: 0
-    weight: 1
-    effectiveChance: 0.25
+    weight: 4
+    effectiveChance: 0.4
     amountToDrop:
-      min: 1
-      max: 1
+      min: 4
+      max: 8
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0
@@ -41,11 +41,11 @@ MonoBehaviour:
   - prefab: {fileID: 3105367325519366748, guid: 2f3553b3e21c9804e8412d527f22244b, type: 3}
     rarity: 2
     forced: 0
-    weight: 1
-    effectiveChance: 0.25
+    weight: 3
+    effectiveChance: 0.3
     amountToDrop:
-      min: 1
-      max: 1
+      min: 3
+      max: 6
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0
@@ -53,11 +53,11 @@ MonoBehaviour:
   - prefab: {fileID: 3105367325519366748, guid: f4d015ab2791af441beab86cf5a60ed9, type: 3}
     rarity: 3
     forced: 0
-    weight: 1
-    effectiveChance: 0.25
+    weight: 2
+    effectiveChance: 0.2
     amountToDrop:
-      min: 1
-      max: 1
+      min: 2
+      max: 4
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0
@@ -66,7 +66,19 @@ MonoBehaviour:
     rarity: 4
     forced: 0
     weight: 1
-    effectiveChance: 0.25
+    effectiveChance: 0.1
+    amountToDrop:
+      min: 1
+      max: 2
+    repetitionsAllowed: 1
+    unlimitedRepsAllowed: 0
+    totalReps: 0
+    showDropInTable: 0
+  - prefab: {fileID: 1802029627009261296, guid: 6d118c8afc045c246a393b94b579fd60, type: 3}
+    rarity: 0
+    forced: 1
+    weight: 1
+    effectiveChance: 1
     amountToDrop:
       min: 1
       max: 1

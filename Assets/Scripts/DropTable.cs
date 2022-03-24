@@ -372,15 +372,13 @@ public class DropTable : ScriptableObject
 
                         //horiz - delete
                         EditorGUILayout.BeginHorizontal();
-                            tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f);
-                            EditorGUILayout.BeginVertical();
-                                EditorGUILayout.LabelField("Delete", boldLabelStyle , GUILayout.MaxWidth(tempWidth*0.8f));
-                                if (GUILayout.Button("Delete", GUILayout.MaxWidth(100.0f))) {
-                                    dropTable.dropList.RemoveAt(i);
-                                    i--;
-                                }
-                            EditorGUILayout.EndVertical();
+                            GUI.backgroundColor = Color.red;
                             GUILayout.FlexibleSpace();
+                            if (GUILayout.Button("Delete", GUILayout.MaxWidth(100.0f))) {
+                                dropTable.dropList.RemoveAt(i);
+                                i--;
+                            }
+                            GUI.backgroundColor = Color.white;
                         //end horiz
                         EditorGUILayout.EndHorizontal();
 
@@ -391,6 +389,14 @@ public class DropTable : ScriptableObject
             }
 
             EditorGUILayout.EndVertical();
+
+            //add new entry button
+            GUI.backgroundColor = Color.green;
+            if (GUILayout.Button("Add New Entry")) {
+                dropTable.dropList.Add(new DropTableEntry());
+            }
+            GUI.backgroundColor = Color.white;
+                
 
             //on change save
             if (GUI.changed) {
