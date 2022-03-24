@@ -513,7 +513,7 @@ public class DropScript : MonoBehaviour
             if (myScript.dropLocation != null)
             {
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Offset", GUILayout.MaxWidth(100));
+                EditorGUILayout.LabelField(new GUIContent("Offset", "The world space offset from the transform"), GUILayout.MaxWidth(100));
                 myScript.dropOffset = EditorGUILayout.Vector3Field("", myScript.dropOffset);
                 EditorGUILayout.EndHorizontal();
             }
@@ -529,7 +529,7 @@ public class DropScript : MonoBehaviour
 
             //throw force
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Throw Force", GUILayout.MaxWidth(100));
+            EditorGUILayout.LabelField(new GUIContent("Throw Force", "The direction and strength to throw objects that have rigidbodies"), GUILayout.MaxWidth(100));
             myScript.throwForce = EditorGUILayout.Vector3Field("", myScript.throwForce);
             myScript.throwForce = new Vector3(Mathf.Round(myScript.throwForce.x * 100) / 100, Mathf.Round(myScript.throwForce.y * 100) / 100, Mathf.Round(myScript.throwForce.z * 100) / 100);
             EditorGUILayout.EndHorizontal();
@@ -545,7 +545,7 @@ public class DropScript : MonoBehaviour
         {
             //random angle arc
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Random Angle Arc", GUILayout.MaxWidth(100));
+            EditorGUILayout.LabelField(new GUIContent("Random Angle Arc", "The cone arc to randomise throw direction\n(Enable Edit Mode and mouse over the scene view to preview arc)"), GUILayout.MaxWidth(100));
             myScript.randomAngleArc = EditorGUILayout.Slider(myScript.randomAngleArc, 0, 360);
             EditorGUILayout.EndHorizontal();
         }
@@ -559,7 +559,7 @@ public class DropScript : MonoBehaviour
             GUILayout.FlexibleSpace();
             //button to toggle isEditingForce, if true, make button green
             GUI.backgroundColor = isEditingForce ? Color.green : Color.white;
-            if (GUILayout.Button("Toggle Edit Throw Vector"))
+            if (GUILayout.Button(new GUIContent("Toggle Edit Throw Vector", "Toggles the scene editing of the vector, and previews the random arc")))
             {
                 isEditingForce = !isEditingForce;
                 if (!isEditingForce)
@@ -580,7 +580,7 @@ public class DropScript : MonoBehaviour
             GUI.backgroundColor = defaultBgColor;
             //debugLocaitonCount
             if (isEditingForce){
-                EditorGUILayout.LabelField("Debug Arc Points", GUILayout.MaxWidth(150));
+                EditorGUILayout.LabelField(new GUIContent("Debug Arc Points", "The amount of preview points to render"), GUILayout.MaxWidth(150));
                 myScript.debugLocaitonCount = EditorGUILayout.IntField(myScript.debugLocaitonCount, GUILayout.MaxWidth(100));
             }
             GUILayout.FlexibleSpace();
@@ -594,7 +594,7 @@ public class DropScript : MonoBehaviour
         {
             //delay
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Delay", GUILayout.MaxWidth(100));
+            EditorGUILayout.LabelField(new GUIContent("Delay", "The amount of time between each object dropped"), GUILayout.MaxWidth(100));
             myScript.dropDelay = EditorGUILayout.FloatField(myScript.dropDelay);
             EditorGUILayout.EndHorizontal();
         }

@@ -25,7 +25,7 @@ MonoBehaviour:
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0
-    showDropInTable: 0
+    showDropInTable: 1
   - prefab: {fileID: 4678064034030620201, guid: f000c5ef462fdf446aa6675608be5884, type: 3}
     rarity: 1
     forced: 0
