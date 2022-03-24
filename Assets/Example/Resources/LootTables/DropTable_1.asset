@@ -12,50 +12,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 803548c8f6352de4784e5bd8cc45012b, type: 3}
   m_Name: DropTable_1
   m_EditorClassIdentifier: 
-  rarity: 0
+  rarity: 1
   dropList:
   - prefab: {fileID: 3105367325519366748, guid: 8964d909c20cf094dadfe975d5407800, type: 3}
+    rarity: 0
     forced: 1
-    weight: 1
+    weight: 10
     amountToDrop:
-      min: 1
-      max: 4
+      min: 0
+      max: 100
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0
   - prefab: {fileID: 4678064034030620201, guid: f000c5ef462fdf446aa6675608be5884, type: 3}
+    rarity: 0
     forced: 0
     weight: 1
     amountToDrop:
-      min: 1
-      max: 1
+      min: 0
+      max: 0
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0
   - prefab: {fileID: 3105367325519366748, guid: 2f3553b3e21c9804e8412d527f22244b, type: 3}
+    rarity: 0
     forced: 0
     weight: 1
     amountToDrop:
-      min: 1
-      max: 1
+      min: 0
+      max: 0
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0
   - prefab: {fileID: 3105367325519366748, guid: f4d015ab2791af441beab86cf5a60ed9, type: 3}
+    rarity: 0
     forced: 0
     weight: 1
     amountToDrop:
-      min: 1
-      max: 1
+      min: 0
+      max: 0
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0
   - prefab: {fileID: 3105367325519366748, guid: 31dbab3e37173e54cb2afcbc75987195, type: 3}
+    rarity: 0
     forced: 0
     weight: 1
     amountToDrop:
-      min: 1
-      max: 1
+      min: 0
+      max: 0
     repetitionsAllowed: 1
     unlimitedRepsAllowed: 0
     totalReps: 0

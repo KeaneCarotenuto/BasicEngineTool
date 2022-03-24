@@ -272,8 +272,6 @@ public class DropScript : MonoBehaviour
 
             DropScript myScript = (DropScript)target;
 
-            defaultBgColor = GUI.backgroundColor;
-
             //DrawDefaultInspector();
 
             //create coloured box around next elements

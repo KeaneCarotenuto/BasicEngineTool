@@ -199,10 +199,28 @@ public class DropTable : ScriptableObject
     [CustomEditor(typeof(DropTable))]
     public class DropTableEditor : Editor
     {
+        //styles
+        static GUIStyle boldCenterLabelStyle = new GUIStyle();
+        static GUIStyle boldLabelStyle = new GUIStyle();
+        static GUIStyle centerLabelStyle = new GUIStyle();
+        static Color defaultBgColor = Color.white;
+
         static public bool showDropList = true;
 
         public override void OnInspectorGUI()
         {
+            boldCenterLabelStyle = new GUIStyle(EditorStyles.label);
+            boldCenterLabelStyle.fontStyle = FontStyle.Bold;
+            boldCenterLabelStyle.alignment = TextAnchor.MiddleCenter;
+
+            boldLabelStyle = new GUIStyle(EditorStyles.label);
+            boldLabelStyle.fontStyle = FontStyle.Bold;
+
+            centerLabelStyle = new GUIStyle(EditorStyles.label);
+            centerLabelStyle.alignment = TextAnchor.MiddleCenter;
+
+            defaultBgColor = GUI.backgroundColor;
+
             //DrawDefaultInspector();
 
             DropTable dropTable = (DropTable)target;
@@ -229,6 +247,55 @@ public class DropTable : ScriptableObject
                 for (int i = 0; i < dropTable.dropList.Count; i++) {
                     DropTableEntry entry = dropTable.dropList[i];
 
+                    float tempWidth = EditorGUIUtility.currentViewWidth;
+
+                    //draw rect
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+                        //horiz
+                        EditorGUILayout.BeginHorizontal();
+                            //drop
+                            EditorGUILayout.BeginVertical();
+                                tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f) / 2.0f;
+                                EditorGUILayout.LabelField("Drop", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
+                                entry.prefab = (GameObject)EditorGUILayout.ObjectField(entry.prefab, typeof(GameObject), false, GUILayout.MaxWidth(tempWidth));
+                            EditorGUILayout.EndVertical();
+                            //weight
+                            EditorGUILayout.BeginVertical();
+                                tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f) / 2.0f;
+                                EditorGUILayout.LabelField("Weight", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
+                                entry.weight = EditorGUILayout.IntField(entry.weight, GUILayout.MaxWidth(tempWidth));
+                            EditorGUILayout.EndVertical();
+                            //amount
+                            GUILayout.FlexibleSpace();
+                        EditorGUILayout.EndHorizontal();
+
+                        //horiz
+                        EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.BeginVertical();
+                                tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f);
+                                EditorGUILayout.BeginHorizontal();
+                                    EditorGUILayout.LabelField("AMOUNT [min: " + entry.amountToDrop.min + "][max: " + entry.amountToDrop.max + "]", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
+                                    EditorGUILayout.LabelField("Infinite?", boldLabelStyle, GUILayout.MaxWidth(65.0f));
+                                    entry.unlimitedRepsAllowed = EditorGUILayout.Toggle(entry.unlimitedRepsAllowed);
+                                    GUILayout.FlexibleSpace();
+                                EditorGUILayout.EndHorizontal();
+                                EditorGUILayout.BeginHorizontal();
+                                    float min = entry.amountToDrop.min; float max = entry.amountToDrop.max;
+                                    EditorGUILayout.MinMaxSlider(ref min, ref max, 0, 100, GUILayout.MaxWidth(tempWidth));
+                                    entry.amountToDrop.min = (int)min; entry.amountToDrop.max = (int)max;
+                                EditorGUILayout.EndHorizontal();
+                            EditorGUILayout.EndVertical();
+                            //end horiz
+                            GUILayout.FlexibleSpace();
+                        EditorGUILayout.EndHorizontal();
+
+
+                        // rarity
+                        entry.rarity = (Rarity)EditorGUILayout.EnumPopup("Rarity", entry.rarity);
+
+                    //end rect
+                    EditorGUILayout.EndVertical();
                     
                 }
             }

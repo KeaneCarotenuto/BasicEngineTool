@@ -179,16 +179,19 @@ MonoBehaviour:
   unlimitedRepsAllowed: 0
   totalReps: 0
   dropDelay: 0.5
-  onSuccessfulDrop:
+  onPrefabDropped:
     m_PersistentCalls:
       m_Calls: []
-  onFirstDrop:
+  onSuccessfulDropQueued:
     m_PersistentCalls:
       m_Calls: []
-  onLastDrops:
+  onFirstDropQueued:
     m_PersistentCalls:
       m_Calls: []
-  onFailedDrop:
+  onLastDropQueued:
+    m_PersistentCalls:
+      m_Calls: []
+  onFailedDropQueued:
     m_PersistentCalls:
       m_Calls: []
   debugMode: 0
