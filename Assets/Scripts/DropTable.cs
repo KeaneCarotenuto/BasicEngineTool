@@ -249,6 +249,15 @@ public class DropTable : ScriptableObject
         }
     }
 
+    /// <summary>
+    /// Sets reps done to 0
+    /// </summary>
+    public void ResetAllRepsDone() {
+        foreach (DropTableEntry entry in dropList) {
+            entry.totalReps = 0;
+        }
+    }
+
     #if UNITY_EDITOR
 
     /// <summary>
@@ -374,7 +383,7 @@ public class DropTable : ScriptableObject
                                 EditorGUI.BeginDisabledGroup(entry.unlimitedRepsAllowed);
                                 EditorGUILayout.LabelField(new GUIContent("Repititions [total] [allowed]", "How many times this entry has been, and can be chosen"), boldLabelStyle , GUILayout.MaxWidth(tempWidth*0.8f));
                                 EditorGUILayout.BeginHorizontal();
-                                    EditorGUI.BeginDisabledGroup(true); entry.totalReps = EditorGUILayout.IntField(entry.totalReps, GUILayout.MaxWidth(100.0f)); EditorGUI.EndDisabledGroup();
+                                    entry.totalReps = EditorGUILayout.IntField(entry.totalReps, GUILayout.MaxWidth(100.0f));
                                     entry.repetitionsAllowed = EditorGUILayout.IntField(entry.repetitionsAllowed, GUILayout.MaxWidth(100.0f));
                                 EditorGUILayout.EndHorizontal();
                                 EditorGUI.EndDisabledGroup();
@@ -427,6 +436,5 @@ public class DropTable : ScriptableObject
             }
         }
     }
-
     #endif
 }

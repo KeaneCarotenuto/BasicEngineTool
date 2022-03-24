@@ -13,14 +13,10 @@ using UnityEditor;
 /// </summary>
 public class DropScript : MonoBehaviour
 {
-    //NOTE: perhaps make this multi tables? or add in combine tables elsewhere?
     [SerializeField] public DropTable dropTable = null;
-    //[SerializeField] public bool combineTables = false;
 
     //position options
-    //NOTE: only allow one of these (transform or collider)
     [SerializeField] public Transform dropLocation = null;
-    //NOTE: perhaps make some 3D tool to make this easier?
     [SerializeField] public Collider dropArea = null;
     [SerializeField] public Vector3 dropOffset = Vector3.zero;
     [SerializeField] public Vector3 throwForce = Vector3.zero;
@@ -30,10 +26,8 @@ public class DropScript : MonoBehaviour
     [SerializeField] public int repetitionsAllowed = 1;
     [SerializeField] public bool unlimitedRepsAllowed = false;
     [SerializeField] public int totalReps = 0;
-    //if multiple {
     [SerializeField] public float dropDelay = 0.0f;
     private float dropDelayTimer = 0.0f;
-    //}
 
     //events
     [SerializeField] public UnityEvent onPrefabDropped = new UnityEvent();
@@ -48,6 +42,8 @@ public class DropScript : MonoBehaviour
     public List<Vector3> debugDropLocations = new List<Vector3>();
     public int debugLocaitonCount = 5000;
 
+    public List<GameObject> droppedObjects = new List<GameObject>();
+
     private void OnDrawGizmosSelected() {
         if (!DropScriptEditor.isEditingForce) return;
 
@@ -59,7 +55,7 @@ public class DropScript : MonoBehaviour
             dropPos += dropOffset;
         }
         else if (dropArea != null) {
-            //get random point within area
+            //get center
             Vector3 randomPoint = dropArea.bounds.center;
 
             dropPos = randomPoint;
@@ -68,22 +64,20 @@ public class DropScript : MonoBehaviour
             dropPos = transform.position;
         }
 
+        //make copy
         Vector3 throwDir = throwForce;
 
+        //draw force line
         Gizmos.color = Color.red;
         Gizmos.DrawLine(dropPos, dropPos + throwDir);
-        //Gizmos.DrawWireSphere(dropPos, throwDir.magnitude/10.0f);
-        //Gizmos.DrawWireSphere(dropPos + throwDir, throwDir.magnitude/10.0f);
-        //Gizmos.DrawWireSphere(dropPos, throwDir.magnitude);
+        //draw points at arc to show cone
         if (debugLocaitonCount < 0) debugLocaitonCount = 0;
         if (debugLocaitonCount > 10000) debugLocaitonCount = 10000;
         debugDropLocations.Add(dropPos + RandomPointOnSphereRandomAngle(throwDir, randomAngleArc));
         while (debugDropLocations.Count > debugLocaitonCount) {
             debugDropLocations.RemoveAt(0);
         }
-
-
-        //draw drop locations as spheres
+        //draw points locations as spheres
         Gizmos.color = Color.red;
         foreach (Vector3 pos in debugDropLocations) {
             Gizmos.DrawSphere(pos, 0.1f);
@@ -91,8 +85,6 @@ public class DropScript : MonoBehaviour
         
     }
 
-
-    // Start is called before the first frame update
     void Start()
     {
         //create copy of drop table to edit
@@ -109,6 +101,14 @@ public class DropScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        TryDropQueuedObjects();
+    }
+
+    /// <summary>
+    /// Does the delayed drop of objects
+    /// </summary>
+    private void TryDropQueuedObjects()
+    {
         //use drop delay to drop items
         if (toDrop.Count > 0)
         {
@@ -122,7 +122,9 @@ public class DropScript : MonoBehaviour
         }
     }
 
-    //probably have to hook this up to update loop to do it with delays
+    /// <summary>
+    /// Queues an one rep of drops
+    /// </summary>
     public void QueueDrop(){
         if (!CheckTable(dropTable)) goto fail;
 
@@ -136,6 +138,7 @@ public class DropScript : MonoBehaviour
             toDrop.Add(drop);
         }
 
+        //add reps and call events
         totalReps++;
         if (totalReps == 1) onFirstDropQueued.Invoke();
         else if (!unlimitedRepsAllowed && totalReps == repetitionsAllowed) onLastDropQueued.Invoke();
@@ -147,6 +150,9 @@ public class DropScript : MonoBehaviour
         return;
     }
 
+    /// <summary>
+    /// Drops an object at the drop location
+    /// </summary>
     private void DropObject(GameObject drop){
         if (drop == null) return;
         
@@ -165,9 +171,10 @@ public class DropScript : MonoBehaviour
         else {
             dropPos = transform.position;
         }
-        
 
+        //make object
         GameObject instance = Instantiate(drop, dropPos, Quaternion.identity);
+        droppedObjects.Add(instance);
 
         //calculate throw force
         Vector3 throwDir = throwForce;
@@ -183,6 +190,20 @@ public class DropScript : MonoBehaviour
         onPrefabDropped.Invoke();
     }
 
+    /// <summary>
+    /// Destroys all dropped objects in scene
+    /// </summary>
+    public void DestroyDroppedObjects() {
+        foreach (GameObject obj in droppedObjects) {
+            if (obj == null) continue;
+            Destroy(obj);
+        }
+        droppedObjects.Clear();
+    }
+
+    /// <summary>
+    /// Gets a random point within the collider (treated as box, perhaps more complex shapes later? this is a LOT of work that is not needed for now)
+    /// </summary>
     public Vector3 RandomPointInColliderBox(Collider collider){
         if (collider == null) return Vector3.zero;
 
@@ -193,27 +214,41 @@ public class DropScript : MonoBehaviour
         return randomPoint;
     }
 
+    /// <summary>
+    /// Gets a random point on the sphere, based on direction and arc (this is the funciton you wanna use for a cone)
+    /// </summary>
     public Vector3 RandomPointOnSphereRandomAngle(Vector3 direction, float anlge){
         if (direction == null || direction == Vector3.zero) return Vector3.zero;
 
         Vector3 start = direction;
-        Vector3 target = RandomPointOnSphereFixedAngle(direction, anlge);
+        //get random circle point
+        Vector3 target = RandomRotationCircleFixedAngle(direction, anlge);
+        //lerp between direction and circle point based on random value, to get random point on sphere (tends to cluster near center I think)
         float randLerp = UnityEngine.Random.Range(0.0f, 1.0f);
         Vector3 randLine = Vector3.Lerp(start, target, randLerp);
         randLine = randLine.normalized * direction.magnitude;
         return randLine;
     }
 
-    public Vector3 RandomPointOnSphereFixedAngle(Vector3 direction, float anlge)
+    /// <summary>
+    /// Gets a random point on the verge of a circle, based on direction and arc
+    /// </summary>
+    public Vector3 RandomRotationCircleFixedAngle(Vector3 direction, float anlge)
     {
+        //get radius of circle based on angle and mangitude
         float radius = Mathf.Tan(Mathf.Deg2Rad*anlge/2) * direction.magnitude;
+        //get random point in circle
         Vector2 circle = UnityEngine.Random.insideUnitCircle * radius;
         //convert direction to quaternion
         Quaternion directionQuat = Quaternion.LookRotation(direction);
+        //convert circle point to vector3
         Vector3 target = direction + directionQuat*new Vector3(circle.x, circle.y);
         return target.normalized * direction.magnitude;
     }
 
+    /// <summary>
+    /// Checks if the drop table is valid and can rep
+    /// </summary>
     private bool CheckTable(DropTable table){
         //is valid
         bool isValid = CheckIfTableIsValid(table);
@@ -226,6 +261,9 @@ public class DropScript : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Checks if the drop table can rep
+    /// </summary>
     private bool CheckIfAnotherRepAllowed(){
         if (!unlimitedRepsAllowed && totalReps >= repetitionsAllowed)
         {
@@ -235,12 +273,28 @@ public class DropScript : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Checks if the drop table is valid
+    /// </summary>
     private bool CheckIfTableIsValid(DropTable table){
         if (table == null) return false;
 
         if (table.dropList.Count <= 0) return false;
 
         return true;
+    }
+
+    /// <summary>
+    /// Resets all reps to 0
+    /// </summary>
+    public void ResetAllRepsDone(){
+        totalReps = 0;
+
+        //reset reps for drop table
+        if (dropTable != null)
+        {
+            dropTable.ResetAllRepsDone();
+        }
     }
 
     #if UNITY_EDITOR
@@ -363,6 +417,10 @@ public class DropScript : MonoBehaviour
             EditorGUILayout.Space();
 
             DrawEvents(myScript);
+            
+            EditorGUILayout.Space();
+
+            DrawDebugButtons(myScript);
 
 
             //on change, save
@@ -635,6 +693,25 @@ public class DropScript : MonoBehaviour
 
             //save
             so.ApplyModifiedProperties();
+        }
+
+        /// <summary>
+        /// Buttons to test drop and clear drops, ONLY IN PLAY MODE.
+        /// </summary>
+        private void DrawDebugButtons(DropScript myScript)
+        {   
+            //only in play mode
+            if (!EditorApplication.isPlaying) return;
+
+            //horiz
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Debug: Test Drop")){
+                myScript.QueueDrop();
+            }
+            if (GUILayout.Button("Debug: Destroy Drops")){
+                myScript.DestroyDroppedObjects();
+            }
+            EditorGUILayout.EndHorizontal();
         }
     }
 
