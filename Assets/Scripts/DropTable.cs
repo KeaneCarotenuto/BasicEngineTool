@@ -7,11 +7,13 @@ using System;
 using UnityEditor;
 #endif
 
-//Drop table scriptable object + Editor script
+/// <summary>
+/// A scriptable object to store and slightly manage drop tables
+/// </summary>
 [Serializable]
 public class DropTable : ScriptableObject
 {
-
+    //rarity colours
     public enum Rarity
     {
         Common,
@@ -21,7 +23,7 @@ public class DropTable : ScriptableObject
         Legendary
     }
 
-    //public dictionary of rarity colors
+    //public dictionary of rarity colours
     public static Dictionary<Rarity, Color> RarityColors = new Dictionary<Rarity, Color>()
     {
         {Rarity.Common, new Color(1.0f, 1.0f, 1.0f)},
@@ -43,36 +45,29 @@ public class DropTable : ScriptableObject
         }
     }
 
-
-    //the objects that the table will drop, along with some options
+    /// <summary>
+    /// the objects that the table will drop, along with some options
+    /// </summary>
     [Serializable]
     public class DropTableEntry
     {
-        //NOTE: only allow either prefab or drop table, not both
         [SerializeField] public GameObject prefab = null;
-        //[SerializeField] public DropTable dropTable = null;
-
         [SerializeField] public Rarity rarity = Rarity.Common;
-
         [SerializeField] public bool forced = false;
-        //if not forced
         [SerializeField] public int weight = 1;
         [SerializeField] public float effectiveChance = 1.0f;
         [SerializeField] public IntRange amountToDrop = new IntRange();
-
-        //NOTE MAKE SURE TO MAKE AN OPTION TO ENABLE/DISABLE ALL
         [SerializeField] public int repetitionsAllowed = 1;
         [SerializeField] public bool unlimitedRepsAllowed = false;
         [SerializeField] public int totalReps = 0;
-
         [SerializeField] public bool showDropInTable = false;
     }
 
-    [SerializeField] public Rarity rarity = Rarity.Common;
+
     [SerializeField] public List<DropTableEntry> dropList = new List<DropTableEntry>();
 
-    //[SerializeField] public int tableWeight = 1;
 
+    //basic public functions
     public void AddEntry(DropTableEntry entry) {
         dropList.Add(entry);
     }
@@ -85,14 +80,20 @@ public class DropTable : ScriptableObject
         dropList.Clear();
     }
 
+    /// <summary>
+    /// Main way to access the drop table and get a list of items to drop (1 entire rep)
+    /// </summary>
     public List<GameObject> GetDropPrefabs(){
         List<GameObject> prefabs = new List<GameObject>();
 
+        //get whole list of drop entries
         List<DropTableEntry> entries = GetValidRepOfEntries();
         if (entries == null || entries.Count <= 0) return null;
 
+        //copy out prefabs from all entires
         foreach (DropTableEntry entry in entries) {
             if (entry.prefab != null) {
+                //get amount of prefabs per rep
                 int randAmount = UnityEngine.Random.Range(entry.amountToDrop.min, entry.amountToDrop.max + 1);
                 for (int i = 0; i < randAmount; i++) {
                     prefabs.Add(entry.prefab);
@@ -107,6 +108,9 @@ public class DropTable : ScriptableObject
         return null;
     }
 
+    /// <summary>
+    /// Gets all the entries that are valid for a single rep
+    /// </summary>
     private List<DropTableEntry> GetValidRepOfEntries() {
         List<DropTableEntry> validEntries = new List<DropTableEntry>();
 
@@ -129,9 +133,13 @@ public class DropTable : ScriptableObject
         return null;
     }
 
+    /// <summary>
+    /// Gets all the forced entries that are valid for a single rep
+    /// </summary>
     private List<DropTableEntry> GetAllValidForcedEntries() {
         List<DropTableEntry> forcedEntries = new List<DropTableEntry>();
 
+        //find all forced entries
         foreach (DropTableEntry entry in dropList) {
             if (!CheckEntry(entry)) continue;
 
@@ -143,6 +151,9 @@ public class DropTable : ScriptableObject
         return forcedEntries;
     }
 
+    /// <summary>
+    /// Gets a random entry that is valid for a single rep
+    /// </summary>
     private DropTableEntry GetRandomValidNoForcedEntry() {
         List<DropTableEntry> validEntries = new List<DropTableEntry>();
 
@@ -171,6 +182,9 @@ public class DropTable : ScriptableObject
         return null;
     }
 
+    /// <summary>
+    /// Checks if an entry is valid for a single rep
+    /// </summary>
     private bool CheckEntry(DropTableEntry entry) {
         //check if entry is valid
         bool isValid = CheckIfEntryIsValid(entry);
@@ -183,6 +197,9 @@ public class DropTable : ScriptableObject
         return true;
     }
 
+    /// <summary>
+    /// Checks if an entry can do another rep
+    /// </summary>
     private bool CheckIfAnotherRepAllowed(DropTableEntry entry) {
         if (entry.unlimitedRepsAllowed) return true;
         
@@ -191,6 +208,9 @@ public class DropTable : ScriptableObject
         return true;
     }
 
+    /// <summary>
+    /// Checks if an entry is valid
+    /// </summary>
     private bool CheckIfEntryIsValid(DropTableEntry entry) {
         //check if entry is valid
         if (entry.prefab == null) return false;
@@ -209,6 +229,9 @@ public class DropTable : ScriptableObject
         }
     }
 
+    /// <summary>
+    /// Calculates the effective chance of an entry
+    /// </summary>
     private void CalculateEffectiveChances() {
         //get total weight and valid entires
         int totalWeight = 0;
@@ -219,6 +242,7 @@ public class DropTable : ScriptableObject
             totalWeight += entry.weight;
         }
 
+        //calculate effective chance
         foreach (DropTableEntry entry in dropList) {
             entry.effectiveChance = (float)entry.weight / (float)totalWeight;
             if (entry.forced) entry.effectiveChance = 1.0f;
@@ -226,6 +250,10 @@ public class DropTable : ScriptableObject
     }
 
     #if UNITY_EDITOR
+
+    /// <summary>
+    /// Draws the drop table in the editor
+    /// </summary>
     [CustomEditor(typeof(DropTable))]
     public class DropTableEditor : Editor
     {
@@ -239,6 +267,7 @@ public class DropTable : ScriptableObject
 
         public override void OnInspectorGUI()
         {
+            //styles
             boldCenterLabelStyle = new GUIStyle(EditorStyles.label);
             boldCenterLabelStyle.fontStyle = FontStyle.Bold;
             boldCenterLabelStyle.alignment = TextAnchor.MiddleCenter;
@@ -251,27 +280,17 @@ public class DropTable : ScriptableObject
 
             defaultBgColor = GUI.backgroundColor;
 
-            //DrawDefaultInspector();
-
+            //get drop table
             DropTable dropTable = (DropTable)target;
-
-            //rarity
-            //set color based on rarity
-            Color color = RarityColors[dropTable.rarity];
-            GUI.backgroundColor = color;
-            dropTable.rarity = (Rarity)EditorGUILayout.EnumPopup("Table Rarity", dropTable.rarity);
-            GUI.backgroundColor = Color.white;
             
             //box around next elements
             EditorGUI.indentLevel++;
-            //GUI.backgroundColor = color;
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             GUI.backgroundColor = Color.white;
 
-            //NOTE PERHAPS ACTUALLY USE THE RECT TOOL HERE??
 
             //drop list, foldable box
-            showDropList = EditorGUILayout.Foldout(showDropList, "Drop List");
+            showDropList = EditorGUILayout.Foldout(showDropList, new GUIContent("Drop List", "List of all the drops that can be dropped."));
             if (showDropList){
                 //drop list
                 for (int i = 0; i < dropTable.dropList.Count; i++) {
@@ -282,7 +301,7 @@ public class DropTable : ScriptableObject
                     Color entryCol = RarityColors[entry.rarity];
                     GUI.backgroundColor = entryCol;
 
-                    //draw rect
+                    //drawing entry
                     EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                     
                     GUI.backgroundColor = Color.white;
@@ -292,40 +311,41 @@ public class DropTable : ScriptableObject
                             //drop
                             EditorGUILayout.BeginVertical();
                                 tempWidth = (EditorGUIUtility.currentViewWidth - 20.0f) * 0.5f;
-                                entry.showDropInTable = EditorGUILayout.Foldout(entry.showDropInTable, "Drop");
+                                entry.showDropInTable = EditorGUILayout.Foldout(entry.showDropInTable, new GUIContent("Drop", "Drop Prefab.\nClick arrow on left to expand/collapse!"));
                                 entry.prefab = (GameObject)EditorGUILayout.ObjectField(entry.prefab, typeof(GameObject), false, GUILayout.MaxWidth(tempWidth));
                             EditorGUILayout.EndVertical();
 
                             //forced
                             EditorGUILayout.BeginVertical();
                                 tempWidth = (EditorGUIUtility.currentViewWidth - 20.0f) * (0.5f / 3.0f);
-                                EditorGUILayout.LabelField("Forced", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
+                                EditorGUILayout.LabelField(new GUIContent("Forced", "Forced entries will always drop"), boldLabelStyle, GUILayout.MaxWidth(tempWidth));
                                 entry.forced = EditorGUILayout.Toggle(entry.forced, GUILayout.MaxWidth(tempWidth));
                             EditorGUILayout.EndVertical();
 
                             //weight
                             EditorGUILayout.BeginVertical();
                                 tempWidth = (EditorGUIUtility.currentViewWidth - 20.0f) * (0.5f / 2.0f);
-                                EditorGUILayout.LabelField("Weight", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
+                                EditorGUILayout.LabelField(new GUIContent("Weight", "Relates to the chance this entry is selected"), boldLabelStyle, GUILayout.MaxWidth(tempWidth));
                                 entry.weight = EditorGUILayout.IntField(entry.weight, GUILayout.MaxWidth(tempWidth));
                             EditorGUILayout.EndVertical();
                             //effective chance
                             EditorGUILayout.BeginVertical();
                                 tempWidth = (EditorGUIUtility.currentViewWidth - 20.0f) * (0.5f / 2.0f);
-                                EditorGUILayout.LabelField("Chance", boldLabelStyle, GUILayout.MaxWidth(tempWidth));
-                                EditorGUILayout.LabelField((entry.effectiveChance * 100.0f).ToString("0.0") + "%", GUILayout.MaxWidth(tempWidth));
+                                EditorGUILayout.LabelField(new GUIContent("Chance", "The effective chance an entry has of beng dropped per rep"), boldLabelStyle, GUILayout.MaxWidth(tempWidth));
+                                EditorGUILayout.LabelField(new GUIContent((entry.effectiveChance * 100.0f).ToString("0.0") + "%", "The effective chance an entry has of beng dropped per rep"), GUILayout.MaxWidth(tempWidth));
                             EditorGUILayout.EndVertical();
                             //amount
                             GUILayout.FlexibleSpace();
-                            
+                        
+                        //end horiz
                         EditorGUILayout.EndHorizontal();
 
                         EditorGUILayout.Space();
 
+                        //only display if drop is open
                         if (entry.showDropInTable) {
-
                         // rarity
-                        EditorGUILayout.LabelField("Rarity");
+                        EditorGUILayout.LabelField(new GUIContent("Rarity", "Not actually used, just helps with visuals"));
                         entry.rarity = (Rarity)EditorGUILayout.EnumPopup(entry.rarity);
 
                         EditorGUILayout.Space();
@@ -334,7 +354,7 @@ public class DropTable : ScriptableObject
                         EditorGUILayout.BeginHorizontal();
                             tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f);
                             EditorGUILayout.BeginVertical();
-                                EditorGUILayout.LabelField("Rand Amount [min][max]", boldLabelStyle , GUILayout.MaxWidth(tempWidth*0.8f));
+                                EditorGUILayout.LabelField(new GUIContent("Rand Amount [min] [max]", "The amount of this prefab to drop if this entry is selected\n(min-max inclusive)"), boldLabelStyle , GUILayout.MaxWidth(tempWidth*0.8f));
                                 EditorGUILayout.BeginHorizontal();
                                     entry.amountToDrop.min = EditorGUILayout.IntField(entry.amountToDrop.min, GUILayout.MaxWidth(100.0f));
                                     entry.amountToDrop.max = EditorGUILayout.IntField(entry.amountToDrop.max, GUILayout.MaxWidth(100.0f));
@@ -352,7 +372,7 @@ public class DropTable : ScriptableObject
                             tempWidth = (EditorGUIUtility.currentViewWidth - 50.0f);
                             EditorGUILayout.BeginVertical();
                                 EditorGUI.BeginDisabledGroup(entry.unlimitedRepsAllowed);
-                                EditorGUILayout.LabelField("Repititions [total][allowed]", boldLabelStyle , GUILayout.MaxWidth(tempWidth*0.8f));
+                                EditorGUILayout.LabelField(new GUIContent("Repititions [total] [allowed]", "How many times this entry has been, and can be chosen"), boldLabelStyle , GUILayout.MaxWidth(tempWidth*0.8f));
                                 EditorGUILayout.BeginHorizontal();
                                     EditorGUI.BeginDisabledGroup(true); entry.totalReps = EditorGUILayout.IntField(entry.totalReps, GUILayout.MaxWidth(100.0f)); EditorGUI.EndDisabledGroup();
                                     entry.repetitionsAllowed = EditorGUILayout.IntField(entry.repetitionsAllowed, GUILayout.MaxWidth(100.0f));
@@ -360,7 +380,7 @@ public class DropTable : ScriptableObject
                                 EditorGUI.EndDisabledGroup();
                             EditorGUILayout.EndVertical();
                             EditorGUILayout.BeginVertical();
-                                EditorGUILayout.LabelField("Infinite?");
+                                EditorGUILayout.LabelField(new GUIContent("Infinite?", "If true, this entry can be chosen an infinite amount of times"), boldLabelStyle, GUILayout.MaxWidth(tempWidth*0.2f));
                                 entry.unlimitedRepsAllowed = EditorGUILayout.Toggle(entry.unlimitedRepsAllowed);
                             EditorGUILayout.EndVertical();
                             GUILayout.FlexibleSpace();
@@ -374,7 +394,7 @@ public class DropTable : ScriptableObject
                         EditorGUILayout.BeginHorizontal();
                             GUI.backgroundColor = Color.red;
                             GUILayout.FlexibleSpace();
-                            if (GUILayout.Button("Delete", GUILayout.MaxWidth(100.0f))) {
+                            if (GUILayout.Button(new GUIContent("Delete", "Deletes this entry from the table"), GUILayout.MaxWidth(100.0f))) {
                                 dropTable.dropList.RemoveAt(i);
                                 i--;
                             }
@@ -384,15 +404,14 @@ public class DropTable : ScriptableObject
 
                     //end rect
                     EditorGUILayout.EndVertical();
-                    
                 }
             }
 
             EditorGUILayout.EndVertical();
 
-            //add new entry button
+            //new entry button
             GUI.backgroundColor = Color.green;
-            if (GUILayout.Button("Add New Entry")) {
+            if (GUILayout.Button(new GUIContent("Add New Entry", "Adds a new blank entry at the end of the table"))) {
                 dropTable.dropList.Add(new DropTableEntry());
             }
             GUI.backgroundColor = Color.white;

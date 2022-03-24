@@ -245,7 +245,9 @@ public class DropScript : MonoBehaviour
 
     #if UNITY_EDITOR
 
-    //custom editor
+    /// <summary>
+    /// The editor code for the drop script.
+    /// </summary>
     [CustomEditor(typeof(DropScript))]
     public class DropScriptEditor : Editor
     {

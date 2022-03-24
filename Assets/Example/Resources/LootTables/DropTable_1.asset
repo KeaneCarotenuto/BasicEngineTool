@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 803548c8f6352de4784e5bd8cc45012b, type: 3}
   m_Name: DropTable_1
   m_EditorClassIdentifier: 
-  rarity: 0
   dropList:
   - prefab: {fileID: 3105367325519366748, guid: 8964d909c20cf094dadfe975d5407800, type: 3}
     rarity: 0
